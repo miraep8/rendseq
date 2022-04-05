@@ -1,10 +1,12 @@
 '''
 peaks.py will take a zscore and find the peaks in it using the vertibi algorithm.
 '''
+import argparse
 from math import log, inf
 import numpy as np
 from scipy.stats import norm
 from matplotlib import pyplot as plt
+from file_funcs import open_wig, write_wig, make_new_dir
 
 def populate_trans_mat(z_scores, peak_center, spread, trans_m, states):
     '''
@@ -40,7 +42,7 @@ def populate_trans_mat(z_scores, peak_center, spread, trans_m, states):
             trans_1[j,i] = paths[trans_2[j,i]]
     return trans_1, trans_2
 
-def hmm_peaks(z_scores, i_to_p = 1/2000, p_to_p = 1/1.5, peak_center = 12, spread = 2):
+def hmm_peaks(z_scores, i_to_p = 1/1000, p_to_p = 1/1.5, peak_center = 10, spread = 2):
     '''
     hmm_peaks implements the vertibi algorithm to fit a HMM to the data given
         the z_scores of the raw data.
@@ -91,7 +93,7 @@ def make_kink_fig(save_file, seen, exp, pnts):
     '''
     plt.plot(pnts, seen, label = 'Observed')
     plt.plot(pnts, exp, label = 'Expected')
-    plt.yscale(log)
+    plt.yscale('log')
     plt.ylabel('Number of Positions with Z score Greater than or equal to')
     plt.xlabel('Z score')
     plt.legend()
@@ -152,3 +154,36 @@ def thresh_peaks(z_scores, thresh = None, method = 'kink'):
     peaks[:,0] = z_scores[:,0]
     peaks[:,1] = (z_scores[:,1] > thresh).astype(int)
     return peaks
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description = 'Can run from the\
+                                        commmand line.  Please pass a \
+                                        zscore file and select a method \
+                                        for peak fitting.')
+    parser.add_argument("filename", help = "Location of the zscore file")
+    parser.add_argument("method", help = "User must pass the desired peak\
+                                        fitting method.  Choose \"thesh\" \
+                                        or \"hmm\"")
+    parser.add_argument("--save_file", help = "Save the z_scores file as a new\
+                                        wig file in addition to returning the\
+                                        z_scores.  Default = True",
+                                default = True)
+    ## TODO: add more optional args to parser - like zscores.py
+    args = parser.parse_args()
+    filename = args.filename
+    z_scores, chrom = open_wig(filename)
+    if args.method == "thresh":
+        print(f'Using the thresholding method to find peaks for {filename}')
+        peaks = thresh_peaks(z_scores)
+    elif args.method == "hmm":
+        print(f'Using the hmm method to find peaks for {filename}')
+        peaks = hmm_peaks(z_scores)
+    else:
+        print('Issue!  Must pass a valid peak finding method!')
+    if args.save_file:
+        file_loc = filename[:filename.rfind('/')]
+        file_loc = file_loc[:file_loc.rfind('/')]
+        peak_dir = make_new_dir([file_loc, '/Peaks/'])
+        file_start = filename[filename.rfind('/'):filename.rfind('.wig')]
+        peak_file = ''.join([peak_dir, file_start, '_peaks.wig'])
+        write_wig(peaks, peak_file, chrom)

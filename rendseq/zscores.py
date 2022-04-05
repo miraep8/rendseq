@@ -94,7 +94,7 @@ def r_score_helper(gap, w_sz, min_r, reads, i):
     r_score = calc_score(r_vals, min_r, reads[i, 1])
     return r_score
 
-def z_scores(filename, gap = 5, w_sz = 50, min_r = 20, save_file = True):
+def z_scores(reads, gap = 5, w_sz = 50, min_r = 20):
     '''
     z_scores will generate a companion z_score file based on the local data
         around each read in the read file.
@@ -113,8 +113,7 @@ def z_scores(filename, gap = 5, w_sz = 50, min_r = 20, save_file = True):
         -z_score (2xn array): a 2xn array with the first column being position
             and the second column being the z_score.
     '''
-    print(f'Calculating zscores for file {filename}.')
-    reads, chrom = open_wig(filename)
+
     #make array of zscores - same length as raw reads:
     z_score = zeros([len(reads) - 2*(gap + w_sz),2])
     z_score[:,0] = reads[gap + w_sz:len(reads) - (gap + w_sz),0]
@@ -130,12 +129,6 @@ def z_scores(filename, gap = 5, w_sz = 50, min_r = 20, save_file = True):
             z_score[i-(gap + w_sz),1] = r_score
         elif (not l_score is None) and (r_score is None or abs(l_score) < abs(r_score)):
             z_score[i-(gap + w_sz),1] = l_score
-    if save_file:
-        file_loc = filename[:filename.rfind('/')]
-        z_score_dir = make_new_dir([file_loc, '/Z_scores/'])
-        file_start = filename[filename.rfind('/'):filename.rfind('.wig')]
-        z_score_file = ''.join([z_score_dir, file_start, '_zscores.wig'])
-        write_wig(z_score, z_score_file, chrom)
     return z_score
 
 
@@ -170,8 +163,17 @@ if __name__ == '__main__':
                                         z_scores.  Default = True",
                                 default = True)
     args = parser.parse_args()
-    z_scores(args.filename, gap = args.gap, w_sz = args.w_sz,
-                min_r = args.min_r, save_file = args.save_file)
+    filename = args.filename
+    print(f'Calculating zscores for file {filename}.')
+    reads, chrom = open_wig(filename)
+    z_score = z_scores(reads, gap = args.gap, w_sz = args.w_sz,
+                min_r = args.min_r)
+    if args.save_file:
+        file_loc = filename[:filename.rfind('/')]
+        z_score_dir = make_new_dir([file_loc, '/Z_scores/'])
+        file_start = filename[filename.rfind('/'):filename.rfind('.wig')]
+        z_score_file = ''.join([z_score_dir, file_start, '_zscores.wig'])
+        write_wig(z_score, z_score_file, chrom)
     print(f'Ran zscores.py with the following settings: \
         gap: {args.gap}, w_sz: {args.w_sz}, min_r: {args.min_r},\
         file_name: {args.filename} ')
