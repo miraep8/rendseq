@@ -3,9 +3,9 @@ The z_scores.py module contains the code for transforming raw rendSeq data into
     z_score transformed data.  It also has many helper functions that assist in
     this calculation.
 '''
-from numpy import zeros, mean, std, sign
 import argparse
-from file_funcs import *
+from numpy import zeros, mean, std
+from file_funcs import write_wig, open_wig, make_new_dir
 
 def adjust_down(cur_ind, target_val, reads):
     '''
@@ -113,8 +113,7 @@ def z_scores(filename, gap = 5, w_sz = 50, min_r = 20, save_file = True):
         -z_score (2xn array): a 2xn array with the first column being position
             and the second column being the z_score.
     '''
-    file_end = filename[filename.rfind('/'):]
-    print(f'Making Zscore File for file {file_end}'))
+    print(f'Calculating zscores for file {filename}.')
     reads, chrom = open_wig(filename)
     #make array of zscores - same length as raw reads:
     z_score = zeros([len(reads) - 2*(gap + w_sz),2])
@@ -132,11 +131,11 @@ def z_scores(filename, gap = 5, w_sz = 50, min_r = 20, save_file = True):
         elif (not l_score is None) and (r_score is None or abs(l_score) < abs(r_score)):
             z_score[i-(gap + w_sz),1] = l_score
     if save_file:
-        file_loc = filename[:filename.rfind('/'')]
+        file_loc = filename[:filename.rfind('/')]
         z_score_dir = make_new_dir([file_loc, '/Z_scores/'])
         file_start = filename[filename.rfind('/'):filename.rfind('.wig')]
         z_score_file = ''.join([z_score_dir, file_start, '_zscores.wig'])
-        write_wig()
+        write_wig(z_score, z_score_file, chrom)
     return z_score
 
 
@@ -171,4 +170,8 @@ if __name__ == '__main__':
                                         z_scores.  Default = True",
                                 default = True)
     args = parser.parse_args()
-    print(f'gap: {args.gap}, w_sz: {args.w_sz}, min_r: {args.min_r}, file_name: {args.file_name} ')
+    z_scores(args.filename, gap = args.gap, w_sz = args.w_sz,
+                min_r = args.min_r, save_file = args.save_file)
+    print(f'Ran zscores.py with the following settings: \
+        gap: {args.gap}, w_sz: {args.w_sz}, min_r: {args.min_r},\
+        file_name: {args.filename} ')

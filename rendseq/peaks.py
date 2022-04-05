@@ -78,6 +78,25 @@ def hmm_peaks(z_scores, i_to_p = 1/2000, p_to_p = 1/1.5, peak_center = 12, sprea
     print(f'Found {sum(peaks[:,1] > 1)} Peaks')
     return peaks
 
+def make_kink_fig(save_file, seen, exp, pnts):
+    '''
+    make_kink_fig is a helper function which creates a figure comparing the
+        number of observed positions with a z score equal to or greater than a
+        threshold versus the expected number of positions with that z score.
+    Parameters:
+        - save_fig - the name of the file to save the plot to.
+        - seen - the obs number of positions with a given z score or greater
+        - exp - the exp number of positions with a given z score or greater
+        - pnts - the z score values/x axis of the plot.
+    '''
+    plt.plot(pnts, seen, label = 'Observed')
+    plt.plot(pnts, exp, label = 'Expected')
+    plt.yscale(log)
+    plt.ylabel('Number of Positions with Z score Greater than or equal to')
+    plt.xlabel('Z score')
+    plt.legend()
+    plt.savefig(save_file)
+
 def calc_thresh(z_scores, method):
     '''
     calc_thresh will calculate and appropriate threshold for a threshold based
@@ -92,6 +111,7 @@ def calc_thresh(z_scores, method):
         - threshold (float): the calculated threshold.
     '''
     methods = ['expected_val', 'kink']
+    thresh = 15
     if method == 'expected_val': #threshold such that num peaks exp < 1.
         p_val = 1/len(z_scores) #note this method is dependent on genome size
         thresh = round(norm.ppf(1-p_val), 1)
@@ -101,32 +121,34 @@ def calc_thresh(z_scores, method):
         seen = [0 for i in range(len(pnts))]
         exp = [0 for i in range(len(pnts))]
         thresh = -1
-        for ind, p in enumerate(pnts):
-            seen[ind] = np.sum(z_scores[:,1] > p)
-            exp[ind] = (1 - norm.cdf(p))*len(z_scores)
+        for ind, point in enumerate(pnts):
+            seen[ind] = np.sum(z_scores[:,1] > point)
+            exp[ind] = (1 - norm.cdf(point))*len(z_scores)
             if seen[ind] >= num_exceed*exp[ind] and thresh == -1:
-                thresh = p
-        save_file = './kink.png'
-        plt.plot(pnts, seen, label = 'Observed')
-        plt.plot(pnts, exp, label = 'Expected')
-        plt.yscale(log)
-        plt.ylabel('Number of Positions with Z score Greater than or equal to')
-        plt.xlabel('Z score')
-        plt.legend()
-        plt.savefig(save_file)
-
-
+                thresh = point
+        make_kink_fig('./kink.png', seen, exp, pnts)
 
     else:
         print(f'The method selected ({method}) does not match one of the \
-                supported methods.  Please select one from {mehtods}')
+                supported methods.  Please select one from {methods}.  \
+                Defaulting to threshold of {thresh}')
+    return thresh
 
-
-
-def thresh_peaks(z_scores, thresh = None, method = ):
+def thresh_peaks(z_scores, thresh = None, method = 'kink'):
     '''
-    thresh_peaks
+    thresh_peaks will calculate a peaks from the provided z scores.  This
+        approach will count all positions with a z score above a certain
+        threshold as a peak. (and can also calculate this threshold)
+    Parameters:
+        - z_scores - a 2xn array of nt positions and zscores at that pos.
+        - thresh - the threshold value to use.  If none is provided it will be
+            automatically calculated.
+        - method - the method to use to automatically calculate the z score
+            if none is provided.  Default method is "kink"
     '''
-    if thresh == None:
-        thresh = calc_thresh(z_scores)
-    peaks =
+    if thresh is None:
+        thresh = calc_thresh(z_scores, method)
+    peaks = np.zeros([len(z_scores),2])
+    peaks[:,0] = z_scores[:,0]
+    peaks[:,1] = (z_scores[:,1] > thresh).astype(int)
+    return peaks

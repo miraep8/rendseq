@@ -4,7 +4,7 @@ creating, and opening relevant files
 '''
 
 from os import mkdir, path
-from numpy import where, delete, asarray, array
+from numpy import where, delete, asarray
 from pandas import read_csv
 
 def write_wig(wig_track, wig_file_name, chrom_name):
@@ -35,11 +35,10 @@ def open_wig(filename):
             z_score etc)
     '''
     #first we will read the chrom from the second line in the wig file:
-    file = open(filename)
-    l = file.readline()
-    l = file.readline()
-    chrom = l[l.rfind('=') + 1:]
-    file.close()
+    with open(filename, 'r', encoding="utf8") as file:
+        line = file.readline()
+        line = file.readline()
+        chrom = line[line.rfind('=') + 1:]
     # next we read all the wig file data and return that:
     reads = asarray(read_csv(filename, sep = '\t', header = 1, names = ['bp', 'count']))
     return reads, chrom
