@@ -1,24 +1,18 @@
 # rendseq
-rendseq is the python package to facilitate your RendSeq analysis!
+rendseq is the python package to facilitate your RendSeq
+data analysis dreams!
+
+To learn more about RendSeq - eg what it is, what types of questions it can help you solve and how you can generate your own RendSeq data set please visit the
+ [Li lab website](http://gwli.scripts.mit.edu/group/), or check out
+the [Li Lab's 2018 Cell Paper](http://gwli.scripts.mit.edu/group/wp-content/uploads/2019/01/Lalanne_Cell2018.pdf)
+by Lalanne et al.
 
 To get started - install our package via pip
 
- - Soon to be publshed as a pip package.  Will be updated when this happens!
+  `pip install rendseq`
 
- the rendseq package contains several useful modules:
+To learn more about how to use this package -please check out our documentation page and/or walk through our google collab tutorial.
 
- zscores:
+We welcome collaborators on this project!  To get started check out our instructions for how to get started as a contributor.
 
- contains all the functionality you need to convert your raw rendseq reads into zscore transformed reads. 
-
- peaks:
- 
-has the functions you need to go from z score transformed data to peaks. 
-
- file_funcs:
-
-contains all the utility functions shared between files.  Will alow you to open/write new wig files (the file format used for raw data, z score files and peak files!)
-
-Please reach out with any questions to mirae@mit.edu
-
-**want to set up a permanent li-lab associated email list to handle inquiries. 
+You can also direct all correspondence about this project to our dedicated mailing list: <mark >rendseq *at* mit *dot* edu</mark>
