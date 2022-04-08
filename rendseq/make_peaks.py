@@ -6,7 +6,7 @@ from math import log, inf
 import numpy as np
 from scipy.stats import norm
 from matplotlib import pyplot as plt
-from file_funcs import open_wig, write_wig, make_new_dir
+from rendseq.file_funcs import open_wig, write_wig, make_new_dir
 
 def populate_trans_mat(z_scores, peak_center, spread, trans_m, states):
     '''
@@ -80,7 +80,7 @@ def hmm_peaks(z_scores, i_to_p = 1/1000, p_to_p = 1/1.5, peak_center = 10, sprea
     print(f'Found {sum(peaks[:,1] > 1)} Peaks')
     return peaks
 
-def make_kink_fig(save_file, seen, exp, pnts):
+def make_kink_fig(save_file, seen, exp, pnts, thresh):
     '''
     make_kink_fig is a helper function which creates a figure comparing the
         number of observed positions with a z score equal to or greater than a
@@ -93,6 +93,7 @@ def make_kink_fig(save_file, seen, exp, pnts):
     '''
     plt.plot(pnts, seen, label = 'Observed')
     plt.plot(pnts, exp, label = 'Expected')
+    plt.plot([thresh, thresh], [max(exp)*10, min(exp)/10], label = 'Threshold')
     plt.yscale('log')
     plt.ylabel('Number of Positions with Z score Greater than or equal to')
     plt.xlabel('Z score')
@@ -118,7 +119,7 @@ def calc_thresh(z_scores, method):
         p_val = 1/len(z_scores) #note this method is dependent on genome size
         thresh = round(norm.ppf(1-p_val), 1)
     elif method == 'kink':  #where the num z_scores exceeds exp num by 1000x
-        num_exceed = 1000
+        factor_exceed = 10000
         pnts = np.arange(0, 20, .1)
         seen = [0 for i in range(len(pnts))]
         exp = [0 for i in range(len(pnts))]
@@ -126,9 +127,9 @@ def calc_thresh(z_scores, method):
         for ind, point in enumerate(pnts):
             seen[ind] = np.sum(z_scores[:,1] > point)
             exp[ind] = (1 - norm.cdf(point))*len(z_scores)
-            if seen[ind] >= num_exceed*exp[ind] and thresh == -1:
+            if seen[ind] >= factor_exceed*exp[ind] and thresh == -1:
                 thresh = point
-        make_kink_fig('./kink.png', seen, exp, pnts)
+        make_kink_fig('./kink.png', seen, exp, pnts, thresh)
 
     else:
         print(f'The method selected ({method}) does not match one of the \

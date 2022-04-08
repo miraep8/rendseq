@@ -1,0 +1,8 @@
+LICENSE
+README.md
+pyproject.toml
+setup.py
+rendseq/rendseq.egg-info/PKG-INFO
+rendseq/rendseq.egg-info/SOURCES.txt
+rendseq/rendseq.egg-info/dependency_links.txt
+rendseq/rendseq.egg-info/top_level.txt

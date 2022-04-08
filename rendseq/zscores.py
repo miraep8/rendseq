@@ -5,7 +5,7 @@ The z_scores.py module contains the code for transforming raw rendSeq data into
 '''
 import argparse
 from numpy import zeros, mean, std
-from file_funcs import write_wig, open_wig, make_new_dir
+from rendseq.file_funcs import write_wig, open_wig, make_new_dir
 
 def adjust_down(cur_ind, target_val, reads):
     '''

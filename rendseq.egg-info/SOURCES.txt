@@ -1,4 +1,6 @@
+LICENSE
 README.md
+pyproject.toml
 setup.py
 rendseq/__init__.py
 rendseq/file_funcs.py
@@ -7,5 +9,4 @@ rendseq/zscores.py
 rendseq.egg-info/PKG-INFO
 rendseq.egg-info/SOURCES.txt
 rendseq.egg-info/dependency_links.txt
-rendseq.egg-info/not-zip-safe
 rendseq.egg-info/top_level.txt
