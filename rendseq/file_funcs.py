@@ -37,7 +37,7 @@ def open_wig(filename):
     '''
     #first we will read the chrom from the second line in the wig file:
     with open(filename, 'r', encoding="utf8") as file:
-        line = file.readline()
+        next(file)
         line = file.readline()
         chrom = line[line.rfind('=') + 1:]
     # next we read all the wig file data and return that:
