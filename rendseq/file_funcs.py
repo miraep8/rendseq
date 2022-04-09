@@ -39,7 +39,7 @@ def open_wig(filename):
     with open(filename, 'r', encoding="utf8") as file:
         next(file)
         line = file.readline()
-        chrom = line[line.rfind('=') + 1:]
+        chrom = line[line.rfind('=') + 1:].rstrip()
     # next we read all the wig file data and return that:
     reads = asarray(read_csv(filename, sep = '\t', header = 1, names = ['bp', 'count']))
     return reads, chrom
