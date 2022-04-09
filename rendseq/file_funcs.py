@@ -3,7 +3,8 @@ file_funcs.py contains lots of functions which help with fetching,
 creating, and opening relevant files
 '''
 
-from os import mkdir, path
+from os import mkdir
+from os.path import isdir
 from numpy import where, delete, asarray
 from pandas import read_csv
 
@@ -54,6 +55,6 @@ def make_new_dir(dir_parts):
         - dir_str - the directory name
     '''
     dir_str = ''.join(dir_parts)
-    if not path.isdir(dir_str):
+    if not isdir(dir_str):
         mkdir(dir_str)
     return dir_str
