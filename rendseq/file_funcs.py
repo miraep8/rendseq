@@ -17,7 +17,7 @@ def write_wig(wig_track, wig_file_name, chrom_name):
         - wig_file_name (string) - the new file you will write to
     '''
     d_inds = where(wig_track[:,0] < 1)
-    delete(wig_track, d_inds)
+    wig_track = delete(wig_track, d_inds)
     with open(wig_file_name, 'w+', encoding='utf-8') as wig_file:
         wig_file.write('track type=wiggle_0\n')
         wig_file.write(f'variableStep chrom={chrom_name}\n')
