@@ -131,9 +131,12 @@ def z_scores(reads, gap = 5, w_sz = 50, min_r = 20):
             z_score[i-(gap + w_sz),1] = l_score
     return z_score
 
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description = 'Takes raw read file and\
+def main():
+    ''' Process command line arguments and run Z-score calculations.
+    Effect: Writes messages to standard out. If --save-file flag,
+    also writes output to disk.
+    '''
+        parser = argparse.ArgumentParser(description = 'Takes raw read file and\
                                         makes a modified z-score for each\
                                         position. Takes several optional\
                                         arguments')
@@ -177,3 +180,7 @@ if __name__ == '__main__':
     print(f'Ran zscores.py with the following settings: \
         gap: {args.gap}, w_sz: {args.w_sz}, min_r: {args.min_r},\
         file_name: {args.filename} ')
+
+
+if __name__ == '__main__':
+    main()
