@@ -15,6 +15,9 @@ def adjust_down(cur_ind, target_val, reads):
     cur_ind = min(cur_ind, len(reads)-1)
     while reads[cur_ind,0] > target_val:
         cur_ind -= 1
+
+        if cur_ind == 0:
+            break
     return cur_ind
 
 def adjust_up(cur_ind, target_val, reads):
@@ -25,6 +28,9 @@ def adjust_up(cur_ind, target_val, reads):
     cur_ind = max(cur_ind, 0)
     while reads[cur_ind,0] < target_val:
         cur_ind += 1
+
+        if cur_ind > reads[-1,0]:
+            break
     return cur_ind
 
 def remove_outliers(vals):
