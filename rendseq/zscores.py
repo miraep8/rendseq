@@ -132,11 +132,12 @@ def z_scores(reads, gap = 5, w_sz = 50, min_r = 20):
     return z_score
 
 def main():
-    ''' Process command line arguments and run Z-score calculations.
+    ''' 
+    Process command line arguments and run Z-score calculations.
     Effect: Writes messages to standard out. If --save-file flag,
     also writes output to disk.
     '''
-        parser = argparse.ArgumentParser(description = 'Takes raw read file and\
+    parser = argparse.ArgumentParser(description = 'Takes raw read file and\
                                         makes a modified z-score for each\
                                         position. Takes several optional\
                                         arguments')
