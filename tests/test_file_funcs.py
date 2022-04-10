@@ -18,11 +18,14 @@ class TestValidateReads:
         with pytest.raises(ValueError) as e_info:
             validate_reads(array([[1,2,3], [4,5,6]]))
 
+        assert e_info.value.args[0] == "reads must be (n,2), not (2, 3)"
+
     def test_incorrect_type(self):
         ''' read array isn't actually an array '''
         with pytest.raises(ValueError) as e_info:
             validate_reads([1,2,3])
 
+        assert e_info.value.args[0] == "reads must be numpy array, not <class 'list'>"
 class TestOpenWriteWig:
     def test_write_wig(self, tmpdir):
         ''' Write a normal wig file '''
@@ -43,6 +46,8 @@ class TestOpenWriteWig:
         
         with pytest.raises(ValueError) as e_info:
             write_wig(reads, file.strpath, chrom)
+
+        assert e_info.value.args[0] == "requires non-empty reads"
 
     def test_write_wig_chr_empty(self, tmpdir):
         ''' try to write a wig file with no chromosome '''
@@ -82,18 +87,23 @@ class TestOpenWriteWig:
         with open(file, "w") as wigFH:
             wigFH.write("")
 
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError) as e_info:
             open_wig(file.strpath)
+
+        assert e_info.value.args[0][-10::] == "zero lines"
+
 
     def test_open_wig_malformatted(self, tmpdir):
         ''' open a funky wig file '''
         file = tmpdir.join("file.txt")
         with open(file, "w") as wigFH:
-            wigFH.write("this is definitely")
+            wigFH.write("this is definitely\n")
             wigFH.write("not a proper wig file")
 
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError) as e_info:
             open_wig(file.strpath)
+
+        assert e_info.value.args[0] == "requires non-empty reads"
 
     def test_open_then_write(self, tmpdir):
         ''' If you read a file, and then write it, it should look the same '''
