@@ -8,6 +8,32 @@ from os.path import isdir
 from numpy import where, delete, asarray
 from pandas import read_csv
 
+def validate_reads(reads):
+    '''
+    Parameters:
+        -reads (2xn array): a 2xn array with the first column being position
+            and the second column being the count at that position (raw read,
+            z_score etc)
+    Returns:
+        NoneType
+    Effects:
+        Throws exceptions if reads are not correctly formatted
+    '''
+    # Check if reads are empty
+    if len(reads) < 1:
+        raise ValueError("requires non-empty reads")
+
+    # If reads.shape doesn't work, then it's not an np array
+    try:
+        shape = reads.shape
+    except Exception as e:
+        raise ValueError(f"reads must be numpy array, not {type(reads)}")
+
+    # Must have two columns
+    if shape[1] != 2:
+        raise ValueError(f"reads must be (n,2), not {reads.shape}")
+
+
 def write_wig(wig_track, wig_file_name, chrom_name):
     '''
     write_wig writes the wig track to the wig file with proper formatting. Also
@@ -16,6 +42,7 @@ def write_wig(wig_track, wig_file_name, chrom_name):
         - wig_track (required) - the wig data you wish to write (in 2xn array)
         - wig_file_name (string) - the new file you will write to
     '''
+    validate_reads(wig_track)
     d_inds = where(wig_track[:,0] < 1)
     wig_track = delete(wig_track, d_inds, axis = 0)
     with open(wig_file_name, 'w+', encoding='utf-8') as wig_file:
@@ -37,11 +64,17 @@ def open_wig(filename):
     '''
     #first we will read the chrom from the second line in the wig file:
     with open(filename, 'r', encoding="utf8") as file:
-        next(file)
+        try:
+            next(file)
+        except StopIteration as e:
+            raise ValueError(f"{filename} appears to have zero lines")
+
         line = file.readline()
         chrom = line[line.rfind('=') + 1:].rstrip()
-    # next we read all the wig file data and return that:
+    # next we read all the wig file data and return that if it's valid:
     reads = asarray(read_csv(filename, sep = '\t', header = 1, names = ['bp', 'count']))
+    validate_reads(reads)
+    
     return reads, chrom
 
 def make_new_dir(dir_parts):
