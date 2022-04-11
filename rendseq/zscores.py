@@ -4,6 +4,7 @@ The z_scores.py module contains the code for transforming raw rendSeq data into
     this calculation.
 '''
 import argparse
+import warnings
 from numpy import zeros, mean, std
 from rendseq.file_funcs import write_wig, open_wig, make_new_dir, validate_reads
 
@@ -96,12 +97,22 @@ def score_helper(start, stop, min_r, reads, i):
     reads_outlierless = remove_outliers(list(reads[start:stop, 1]))
     return calc_score(reads_outlierless, min_r, reads[i, 1])
 
+def validate_window_gap(gap, w_sz):
+    ''' Checks that gap and window size are reasonable in r/l_score_helper'''
+    if w_sz < 1:
+        raise ValueError("Window size must be larger than 1 to find a z-score")
+    if gap < 0:
+        raise ValueError("Gap size must be at least zero to find a z-score")
+    if gap == 1:
+        warnings.warn("Warning...a gap size of 1 includes the current position and may misrepresent peaks.")
+
 def l_score_helper(gap, w_sz, min_r, reads, i):
     '''
     l_score_helper will find the indexes of reads to use for a z_score
         calculation with reads to the left of the current read, and will return
         the calculated score.
     '''
+    validate_window_gap(gap, w_sz)
     l_start = adjust_up(i - (gap + w_sz), reads[i,0] - (gap + w_sz), reads)
     l_stop = adjust_up(i - gap, reads[i,0] - gap, reads)
     return score_helper(l_start, l_stop, min_r, reads, i)
@@ -112,6 +123,7 @@ def r_score_helper(gap, w_sz, min_r, reads, i):
         calculation with reads to the right of the current read, and will return
         the calculated score.
     '''
+    validate_window_gap(gap, w_sz)
     r_start = adjust_down(i + gap, reads[i,0] + gap, reads)
     r_stop = adjust_down(i + gap + w_sz, reads[i,0] + gap + w_sz, reads)
     return score_helper(r_start, r_stop, min_r, reads, i)
