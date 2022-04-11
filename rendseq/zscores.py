@@ -5,13 +5,15 @@ The z_scores.py module contains the code for transforming raw rendSeq data into
 '''
 import argparse
 from numpy import zeros, mean, std
-from rendseq.file_funcs import write_wig, open_wig, make_new_dir
+from rendseq.file_funcs import write_wig, open_wig, make_new_dir, validate_reads
 
 def adjust_down(cur_ind, target_val, reads):
     '''
     adjust_down is a helper function - will return the index of the lower read
         that is within range for the z-score calculation
     '''
+    validate_reads(reads)
+
     cur_ind = min(cur_ind, len(reads)-1)
     while reads[cur_ind,0] > target_val:
         cur_ind -= 1
@@ -25,13 +27,22 @@ def adjust_up(cur_ind, target_val, reads):
     adjust_up is a helper function - will return the index of the upper read
         that is within range for the z-score calculation
     '''
-    cur_ind = max(cur_ind, 0)
+    if len(reads) < 1:
+        raise ValueError("requires non-empty reads")
+
+    cur_ind = min(max(cur_ind, 0), len(reads))
+
     while reads[cur_ind,0] < target_val:
+        if cur_ind >= len(reads)-1:
+            break
+
         cur_ind += 1
 
-        if cur_ind > reads[-1,0]:
-            break
     return cur_ind
+
+def z_score(val, v_mean, v_std):
+    ''' Calculates a z-score given a value, mean, and standard deviation '''
+    return (val - v_mean) / v_std
 
 def remove_outliers(vals):
     '''
@@ -45,20 +56,20 @@ def remove_outliers(vals):
         -new_v: another array of raw values which has had the extreme values
             removed.
     '''
+    normalized_vals = vals
+
     if len(vals) > 1:
-        new_v = []
         v_mean = mean(vals)
         v_std = std(vals)
-        for value in vals:
-            if v_std == 0 or abs((value - v_mean)/v_std) < 2.5:
-                new_v.append(value)
-    else:
-        new_v = vals
-    return new_v
+
+        if v_std != 0:
+            normalized_vals = [v for v in vals if abs(z_score(v, v_mean, v_std)) < 2.5]
+
+    return normalized_vals
 
 def calc_score(vals, min_r, cur_val):
     '''
-    calc_score will compute the z score (and first check if the std is zero.
+    calc_score will compute the z score (and first check if the std is zero).
     Parameters:
         -vals raw read count values array
         -min_r: the minumum number of reads needed to calculate score
@@ -70,11 +81,18 @@ def calc_score(vals, min_r, cur_val):
     if sum(vals) > min_r:
         v_mean = mean(vals)
         v_std = std(vals)
-        if not v_std == 0:
-            score = (cur_val - v_mean)/v_std
-        else:
-            score = cur_val - v_mean
+
+        score = cur_val - v_mean if v_std == 0 else z_score(cur_val, v_mean, v_std)
+
     return score
+
+def score_helper(start, stop, min_r, reads, i):
+    ''' 
+    Finds the z-score of reads[i] relative to the subsection of reads
+        from start to stop, with a read cutoff of min_r
+    '''
+    reads_outlierless = remove_outliers(list(reads[start:stop, 1]))
+    return calc_score(reads_outlierless, min_r, reads[i, 1])
 
 def l_score_helper(gap, w_sz, min_r, reads, i):
     '''
@@ -84,21 +102,17 @@ def l_score_helper(gap, w_sz, min_r, reads, i):
     '''
     l_start = adjust_up(i - (gap + w_sz), reads[i,0] - (gap + w_sz), reads)
     l_stop = adjust_up(i - gap, reads[i,0] - gap, reads)
-    l_vals = remove_outliers(list(reads[l_start:l_stop,1]))
-    l_score = calc_score(l_vals, min_r, reads[i, 1])
-    return l_score
+    return score_helper(l_start, l_stop, min_r, reads, i)
 
 def r_score_helper(gap, w_sz, min_r, reads, i):
-    '''864740
+    '''
     r_score_helper will find the indexes of reads to use for a z_score
         calculation with reads to the right of the current read, and will return
         the calculated score.
     '''
     r_start = adjust_down(i + gap, reads[i,0] + gap, reads)
     r_stop = adjust_down(i + gap + w_sz, reads[i,0] + gap + w_sz, reads)
-    r_vals = remove_outliers(list(reads[r_start:r_stop,1]))
-    r_score = calc_score(r_vals, min_r, reads[i, 1])
-    return r_score
+    return score_helper(r_start, r_stop, min_r, reads, i)
 
 def z_scores(reads, gap = 5, w_sz = 50, min_r = 20):
     '''
