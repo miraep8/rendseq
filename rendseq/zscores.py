@@ -41,8 +41,12 @@ def adjust_up(cur_ind, target_val, reads):
     return cur_ind
 
 def z_score(val, v_mean, v_std):
-    ''' Calculates a z-score given a value, mean, and standard deviation '''
-    return (val - v_mean) / v_std
+    ''' 
+    Calculates a z-score given a value, mean, and standard deviation 
+        NOTE: Unlike a canonical z_score, the z_score() of a constant vector is 0
+    '''
+    score = 0 if v_std == 0 else (val - v_mean) / v_std
+    return score
 
 def remove_outliers(vals):
     '''
@@ -57,11 +61,9 @@ def remove_outliers(vals):
             removed.
     '''
     normalized_vals = vals
-
     if len(vals) > 1:
         v_mean = mean(vals)
         v_std = std(vals)
-
         if v_std != 0:
             normalized_vals = [v for v in vals if abs(z_score(v, v_mean, v_std)) < 2.5]
 
@@ -82,7 +84,7 @@ def calc_score(vals, min_r, cur_val):
         v_mean = mean(vals)
         v_std = std(vals)
 
-        score = cur_val - v_mean if v_std == 0 else z_score(cur_val, v_mean, v_std)
+        score = z_score(cur_val, v_mean, v_std)
 
     return score
 
