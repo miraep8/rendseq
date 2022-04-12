@@ -156,7 +156,8 @@ def thresh_peaks(z_scores, thresh = None, method = 'kink'):
     peaks[:,1] = (z_scores[:,1] > thresh).astype(int)
     return peaks
 
-if __name__ == '__main__':
+def pars_args_make_peaks(args):
+    ''' Parses command line arguments '''
     parser = argparse.ArgumentParser(description = 'Can run from the\
                                         commmand line.  Please pass a \
                                         zscore file and select a method \
@@ -169,8 +170,12 @@ if __name__ == '__main__':
                                         wig file in addition to returning the\
                                         z_scores.  Default = True",
                                 default = True)
-    ## TODO: add more optional args to parser - like zscores.py
-    args = parser.parse_args()
+    return parser.parse_args(args)
+
+def main_make_peaks():
+    ''' Runs the main peak making from command line '''
+    args = parse_args_make_peaks(sys.argv[1:])
+
     filename = args.filename
     z_scores, chrom = open_wig(filename)
     if args.method == "thresh":
@@ -188,3 +193,8 @@ if __name__ == '__main__':
         file_start = filename[filename.rfind('/'):filename.rfind('.wig')]
         peak_file = ''.join([peak_dir, file_start, '_peaks.wig'])
         write_wig(peaks, peak_file, chrom)
+
+
+if __name__ == '__main__':
+    main_make_peaks()
+    
