@@ -102,7 +102,7 @@ def make_kink_fig(save_file, seen, exp, pnts, thresh):
     plt.legend()
     plt.savefig(save_file)
 
-def calc_thresh(z_scores, method):
+def calc_thresh(z_scores, method, kink_img = "./kink.png"):
     '''
     calc_thresh will calculate and appropriate threshold for a threshold based
         peak calling method if one was not supplied. It can automatically
@@ -131,7 +131,7 @@ def calc_thresh(z_scores, method):
             exp[ind] = (1 - norm.cdf(point))*len(z_scores)
             if seen[ind] >= factor_exceed*exp[ind] and thresh == -1:
                 thresh = point
-        make_kink_fig('./kink.png', seen, exp, pnts, thresh)
+        make_kink_fig(kink_img, seen, exp, pnts, thresh)
 
     else:
         warnings.warn("\n".join([
