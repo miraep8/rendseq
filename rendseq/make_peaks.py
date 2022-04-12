@@ -120,7 +120,7 @@ def calc_thresh(z_scores, method):
     if method == 'expected_val': #threshold such that num peaks exp < 1.
         p_val = 1/len(z_scores) #note this method is dependent on genome size
         thresh = round(norm.ppf(1-p_val), 1)
-    elif method == 'kink':  #where the num z_scores exceeds exp num by 1000x
+    elif method == 'kink':  #where the num z_scores exceeds exp num by 10000x
         factor_exceed = 10000
         pnts = np.arange(0, 20, .1)
         seen = [0 for i in range(len(pnts))]
