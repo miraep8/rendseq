@@ -2,6 +2,7 @@
 peaks.py will take a zscore and find the peaks in it using the vertibi algorithm.
 '''
 import argparse
+from os.path import abspath
 from math import log, inf
 import numpy as np
 from scipy.stats import norm
@@ -187,6 +188,7 @@ def main_make_peaks():
     else:
         raise ValueError("{args.mathod} is not a valid peak finding method, see --help")
     if args.save_file:
+        filename = abspath(filename)
         file_loc = filename[:filename.rfind('/')]
         file_loc = file_loc[:file_loc.rfind('/')]
         peak_dir = make_new_dir([file_loc, '/Peaks/'])
