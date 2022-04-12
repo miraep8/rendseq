@@ -10,9 +10,9 @@ from rendseq.zscores import (
     score_helper,
     l_score_helper,
     r_score_helper,
-    parse_args,
+    parse_args_zscores,
     z_scores,
-    main,
+    main_zscores,
 )
 from numpy import array, append, mean, std
 from numpy.testing import assert_array_equal, assert_array_almost_equal
@@ -43,7 +43,7 @@ def reads():
     )
 
 
-class TestMainAndParseArgs:
+class TestMainAndParseArgsZscore:
     @pytest.fixture
     def regular_argslist(self):
         """A normal list of sys.argv[1:]"""
@@ -72,7 +72,7 @@ class TestMainAndParseArgs:
 
         # Run main with regular arguments
         with patch.object(sys, "argv", regular_argslist):
-            main()
+            main_zscores()
             out, err = capfd.readouterr()
 
         # Expect output
@@ -98,7 +98,7 @@ class TestMainAndParseArgs:
 
         # Run main
         with patch.object(sys, "argv", argslist):
-            main()
+            main_zscores()
             out, err = capfd.readouterr()
 
         # Expect output
@@ -112,7 +112,7 @@ class TestMainAndParseArgs:
 
     def test_parse_args(self, regular_argslist):
         """Regular arguments"""
-        args = parse_args(regular_argslist)
+        args = parse_args_zscores(regular_argslist)
         assert args.filename == "test_file"
         assert args.gap == "1"
         assert args.w_sz == "3"
@@ -122,7 +122,7 @@ class TestMainAndParseArgs:
     def test_parse_args_defaults(self):
         """Makes sure the arg defaults are as-expected"""
         arg_list = ["test_file"]
-        args = parse_args(arg_list)
+        args = parse_args_zscores(arg_list)
 
         assert args.filename == "test_file"
         assert args.gap == 5

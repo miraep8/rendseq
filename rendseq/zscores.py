@@ -180,7 +180,7 @@ def z_scores(reads, gap = 5, w_sz = 50, min_r = 20):
 
     return z_score
 
-def parse_args(args):
+def parse_args_zscores(args):
     ''' Parses command line arguments '''
     parser = argparse.ArgumentParser(description = 'Takes raw read file and\
                                         makes a modified z-score for each\
@@ -213,13 +213,13 @@ def parse_args(args):
                                 default = True)
     return parser.parse_args(args)
 
-def main():
+def main_zscores():
     ''' 
     Run Z-score calculations.
     Effect: Writes messages to standard out. If --save-file flag,
     also writes output to disk.
     '''
-    args = parse_args(sys.argv[1:])
+    args = parse_args_zscores(sys.argv[1:])
 
     # Calculate z-scores
     filename = args.filename
@@ -244,4 +244,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    main_zscores()
