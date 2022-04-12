@@ -134,9 +134,11 @@ def calc_thresh(z_scores, method):
         make_kink_fig('./kink.png', seen, exp, pnts, thresh)
 
     else:
-        warnings.warn(f'The method selected ({method}) does not match one of the \
-                supported methods.  Please select one from {methods}.  \
-                Defaulting to threshold of {thresh}')
+        warnings.warn("\n".join([
+            f'The method selected ({method}) does not match the supported methods.',
+            f'Please select one from {methods}.',
+            f'Defaulting to threshold of {thresh}.'
+            ]))
     return thresh
 
 def thresh_peaks(z_scores, thresh = None, method = 'kink'):
