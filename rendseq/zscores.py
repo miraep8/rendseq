@@ -220,21 +220,26 @@ def main():
     '''
     args = parse_args(sys.argv[1:])
 
+    # Calculate z-scores
     filename = args.filename
     print(f'Calculating zscores for file {filename}.')
     reads, chrom = open_wig(filename)
     z_score = z_scores(reads, gap = args.gap, w_sz = args.w_sz,
                 min_r = args.min_r)
+
+    # Save file, if applicable
     if args.save_file:
         filename = abspath(filename)
         file_loc = filename[:filename.rfind('/')]
         z_score_dir = make_new_dir([file_loc, '/Z_scores/'])
-        file_start = filename[filename.rfind('/'):filename.rfind('.wig')]
+        file_start = filename[filename.rfind('/'):filename.rfind('.')]
         z_score_file = ''.join([z_score_dir, file_start, '_zscores.wig'])
         write_wig(z_score, z_score_file, chrom)
+        print(f'Wrote z_scores to {z_score_file}')
+
     print(f'Ran zscores.py with the following settings: \
         gap: {args.gap}, w_sz: {args.w_sz}, min_r: {args.min_r},\
-        file_name: {args.filename} ')
+        file_name: {args.filename}')
 
 
 if __name__ == '__main__':
