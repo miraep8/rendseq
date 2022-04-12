@@ -3,6 +3,7 @@ The z_scores.py module contains the code for transforming raw rendSeq data into
     z_score transformed data.  It also has many helper functions that assist in
     this calculation.
 '''
+from os.path import abspath
 import argparse
 import warnings
 from numpy import zeros, mean, std
@@ -178,12 +179,8 @@ def z_scores(reads, gap = 5, w_sz = 50, min_r = 20):
 
     return z_score
 
-def main():
-    ''' 
-    Process command line arguments and run Z-score calculations.
-    Effect: Writes messages to standard out. If --save-file flag,
-    also writes output to disk.
-    '''
+def parse_args(args):
+    ''' Parses command line arguments '''
     parser = argparse.ArgumentParser(description = 'Takes raw read file and\
                                         makes a modified z-score for each\
                                         position. Takes several optional\
@@ -213,13 +210,23 @@ def main():
                                         wig file in addition to returning the\
                                         z_scores.  Default = True",
                                 default = True)
-    args = parser.parse_args()
+    return parser.parse_args(args)
+
+def main():
+    ''' 
+    Run Z-score calculations.
+    Effect: Writes messages to standard out. If --save-file flag,
+    also writes output to disk.
+    '''
+    args = parse_args(sys.argv[1:])
+
     filename = args.filename
     print(f'Calculating zscores for file {filename}.')
     reads, chrom = open_wig(filename)
     z_score = z_scores(reads, gap = args.gap, w_sz = args.w_sz,
                 min_r = args.min_r)
     if args.save_file:
+        filename = abspath(filename)
         file_loc = filename[:filename.rfind('/')]
         z_score_dir = make_new_dir([file_loc, '/Z_scores/'])
         file_start = filename[filename.rfind('/'):filename.rfind('.wig')]
