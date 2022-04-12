@@ -3,6 +3,7 @@ peaks.py will take a zscore and find the peaks in it using the vertibi algorithm
 '''
 import argparse
 from os.path import abspath
+import warnings
 from math import log, inf
 import numpy as np
 from scipy.stats import norm
@@ -133,7 +134,7 @@ def calc_thresh(z_scores, method):
         make_kink_fig('./kink.png', seen, exp, pnts, thresh)
 
     else:
-        print(f'The method selected ({method}) does not match one of the \
+        warnings.warn(f'The method selected ({method}) does not match one of the \
                 supported methods.  Please select one from {methods}.  \
                 Defaulting to threshold of {thresh}')
     return thresh
