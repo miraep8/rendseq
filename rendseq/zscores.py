@@ -126,7 +126,6 @@ def r_score_helper(gap, w_sz, min_r, reads, i):
     validate_gap_window(gap, w_sz)
     r_start = adjust_down(i + gap, reads[i,0] + gap, reads)
     r_stop = adjust_down(i + gap + w_sz, reads[i,0] + gap + w_sz, reads)
-    print(f'start is {r_start}, end is {r_stop}')
     return score_helper(r_start, r_stop, min_r, reads, i)
 
 def z_scores(reads, gap = 5, w_sz = 50, min_r = 20):
