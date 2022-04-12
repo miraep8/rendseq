@@ -160,7 +160,7 @@ def thresh_peaks(z_scores, thresh = None, method = 'kink'):
     peaks[:,1] = (z_scores[:,1] > thresh).astype(int)
     return peaks
 
-def pars_args_make_peaks(args):
+def parse_args_make_peaks(args):
     ''' Parses command line arguments '''
     parser = argparse.ArgumentParser(description = 'Can run from the\
                                         commmand line.  Please pass a \
