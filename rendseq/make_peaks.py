@@ -26,20 +26,21 @@ def populate_trans_mat(z_scores, peak_center, spread, trans_m, states):
     trans_1 = np.zeros([len(states), len(z_scores)])
     trans_2 = np.zeros([len(states), len(z_scores)]).astype(int)
     trans_1[:,0] = 1
+    
+    ## emission probabilities matrix (2 x n)
+    probs = np.zeros(shape=(len(states),len(z_scores)))
+    probs[0,:] = norm.pdf(z_scores[:,1]) ## note zscores[:,1] is where all the zscores are
+    probs[1,:] = norm.pdf(z_scores[:,1], peak_center, spread)
+    
     #Vertibi Algorithm:
     for i in range(1,len(z_scores)):
-        #emission probabilities:
-        probs = [norm.pdf(z_scores[i,1]), norm.pdf(z_scores[i,1], peak_center, spread)]
         # we use log probabilities for computational reasons. -Inf means 0 probability
-        for j in range(len(states)):
-            paths = np.zeros([len(states), 1])
-            for k in range(len(states)):
-                if (trans_1[k, i-1] == -inf) or (trans_m[k,j] == 0) or (probs[j] == 0):
-                    paths[k] = -inf
-                else:
-                    paths[k] = trans_1[k, i-1] + log(trans_m[k, j]) + log(probs[j])
-            trans_2[j,i] = np.argmax(paths)
-            trans_1[j,i] = paths[trans_2[j,i]]
+        paths = np.zeros((len(states),len(states)))
+        paths += np.expand_dims(trans_1[:,i-1], axis=1) # adds log(trans_1_sub) column-wise
+        paths += np.log(trans_m)                     # adds log(trans_m) element-wise             
+        paths += np.expand_dims(np.log(probs[:,i]), axis=0)   # adds log(probs_sub) row-wise
+        trans_2[:,i] = np.argmax(paths, axis=0)
+        trans_1[:,i] = np.max(paths, axis=0)
     return trans_1, trans_2
 
 def hmm_peaks(z_scores, i_to_p = 1/1000, p_to_p = 1/1.5, peak_center = 10, spread = 2):
