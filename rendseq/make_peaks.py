@@ -185,7 +185,7 @@ def main_make_peaks():
         print(f'Using the hmm method to find peaks for {filename}')
         peaks = hmm_peaks(z_scores)
     else:
-        print('Issue!  Must pass a valid peak finding method!')
+        raise ValueError("{args.mathod} is not a valid peak finding method, see --help")
     if args.save_file:
         file_loc = filename[:filename.rfind('/')]
         file_loc = file_loc[:file_loc.rfind('/')]
