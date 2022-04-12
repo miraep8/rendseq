@@ -97,14 +97,14 @@ def score_helper(start, stop, min_r, reads, i):
     reads_outlierless = remove_outliers(list(reads[start:stop, 1]))
     return calc_score(reads_outlierless, min_r, reads[i, 1])
 
-def validate_window_gap(gap, w_sz):
+def validate_gap_window(gap, w_sz):
     ''' Checks that gap and window size are reasonable in r/l_score_helper'''
     if w_sz < 1:
         raise ValueError("Window size must be larger than 1 to find a z-score")
     if gap < 0:
         raise ValueError("Gap size must be at least zero to find a z-score")
-    if gap == 1:
-        warnings.warn("Warning...a gap size of 1 includes the current position and may misrepresent peaks.")
+    if gap == 0:
+        warnings.warn("Warning...a gap size of 0 includes the current position and may misrepresent peaks.")
 
 def l_score_helper(gap, w_sz, min_r, reads, i):
     '''
@@ -112,7 +112,7 @@ def l_score_helper(gap, w_sz, min_r, reads, i):
         calculation with reads to the left of the current read, and will return
         the calculated score.
     '''
-    validate_window_gap(gap, w_sz)
+    validate_gap_window(gap, w_sz)
     l_start = adjust_up(i - (gap + w_sz), reads[i,0] - (gap + w_sz), reads)
     l_stop = adjust_up(i - gap, reads[i,0] - gap, reads)
     return score_helper(l_start, l_stop, min_r, reads, i)
@@ -123,9 +123,10 @@ def r_score_helper(gap, w_sz, min_r, reads, i):
         calculation with reads to the right of the current read, and will return
         the calculated score.
     '''
-    validate_window_gap(gap, w_sz)
+    validate_gap_window(gap, w_sz)
     r_start = adjust_down(i + gap, reads[i,0] + gap, reads)
     r_stop = adjust_down(i + gap + w_sz, reads[i,0] + gap + w_sz, reads)
+    print(f'start is {r_start}, end is {r_stop}')
     return score_helper(r_start, r_stop, min_r, reads, i)
 
 def z_scores(reads, gap = 5, w_sz = 50, min_r = 20):
@@ -148,21 +149,31 @@ def z_scores(reads, gap = 5, w_sz = 50, min_r = 20):
             and the second column being the z_score.
     '''
 
-    #make array of zscores - same length as raw reads:
+    # make array of zscores - same length as raw reads, trimming based on window size:
     z_score = zeros([len(reads) - 2*(gap + w_sz),2])
+
+    # first column of return array is the location of the raw reads
     z_score[:,0] = reads[gap + w_sz:len(reads) - (gap + w_sz),0]
+
+    # Iterate through each valid read, recording z-score
     for i in range((gap + w_sz + 1),(len(reads) - (gap + w_sz))):
         # calculate the z score with values from the left:
         l_score = l_score_helper(gap, w_sz, min_r, reads, i)
         # calculate z score with reads from the right:
         r_score = r_score_helper(gap, w_sz, min_r, reads, i)
-        # set the zscore to be the smaller valid score of the left/right scores:
-        if l_score is None and r_score is None: #if there were insufficient reads on both sides
-            z_score[i-(gap + w_sz),1] = reads[i,1]/1.5
-        elif (not r_score is None) and (l_score is None or abs(r_score) < abs(l_score)):
-            z_score[i-(gap + w_sz),1] = r_score
-        elif (not l_score is None) and (r_score is None or abs(l_score) < abs(r_score)):
-            z_score[i-(gap + w_sz),1] = l_score
+
+        # The location in which this z-score should go into the final array
+        i_score_pos = i - (gap + w_sz)
+
+        # set the zscore to be the smaller valid score of the left/right scores
+        # If neither score is valid, Z-score is 0
+        z_score[i_score_pos, 1] = 0
+        if l_score is not None:
+            if r_score is not None:
+                z_score[i_score_pos, 1] = r_score if abs(r_score) < abs(l_score) else l_score
+            else:
+                z_score[i_score_pos, 1] = l_score
+
     return z_score
 
 def main():
