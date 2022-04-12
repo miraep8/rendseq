@@ -173,6 +173,9 @@ def z_scores(reads, gap = 5, w_sz = 50, min_r = 20):
             else:
                 z_score[i_score_pos, 1] = l_score
 
+        elif r_score is not None:
+            z_score[i_score_pos, 1] = r_score
+
     return z_score
 
 def main():
