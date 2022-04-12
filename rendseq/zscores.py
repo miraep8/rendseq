@@ -81,7 +81,7 @@ def calc_score(vals, min_r, cur_val):
         -score: the zscore for the current value, or None if insufficent reads
     '''
     score = None
-    if sum(vals) > min_r:
+    if sum(vals + cur_val) > min_r:
         v_mean = mean(vals)
         v_std = std(vals)
 
