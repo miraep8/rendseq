@@ -8,9 +8,6 @@ from numpy import mean, std, zeros
 
 from rendseq.file_funcs import make_new_dir, open_wig, validate_reads, write_wig
 
-def test_example():
-    """ Test. """
-    return 1
 
 def _adjust_down(cur_ind, target_val, reads):
     """Calculate the lower reads index in range for the z-score calculation."""
