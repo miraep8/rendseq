@@ -3,15 +3,15 @@
 
 import argparse
 import sys
-from os.path import abspath
 import warnings
-from math import log, inf
+from os.path import abspath
 
 import numpy as np
 from matplotlib import pyplot as plt
 from scipy.stats import norm
 
 from rendseq.file_funcs import make_new_dir, open_wig, write_wig
+
 
 def _populate_trans_mat(z_scores, peak_center, spread, trans_m, states):
     """Calculate the Vertibi Algorithm transition matrix.
@@ -120,7 +120,7 @@ def _make_kink_fig(save_file, seen, exp, pnts, thresh):
     plt.legend()
     plt.savefig(save_file)
 
- 
+
 def _calc_thresh(z_scores, method, kink_img="./kink.png"):
     """Calculate a threshold for z-scores file using the method provided.
 
@@ -150,14 +150,14 @@ def _calc_thresh(z_scores, method, kink_img="./kink.png"):
             exp[ind] = (1 - norm.cdf(point)) * len(z_scores)
             if seen[ind] >= factor_exceed * exp[ind] and thresh == -1:
                 thresh = point
-              
+
         _make_kink_fig(kink_img, seen, exp, pnts, thresh)
 
     else:
         warnings.warn(
             "\n".join(
                 [
-                    f"The method selected ({method}) does not match the supported methods.",
+                    f"The method selected ({method}) is not supported.",
                     f"Please select one from {methods}.",
                     f"Defaulting to threshold of {thresh}.",
                 ]
@@ -186,7 +186,7 @@ def thresh_peaks(z_scores, thresh=None, method="kink"):
 
 
 def parse_args_make_peaks(args):
-    """Parses command line arguments"""
+    """Parse command line arguments."""
     parser = argparse.ArgumentParser(
         description="Can run from the\
                                         commmand line.  Please pass a \
@@ -211,7 +211,7 @@ def parse_args_make_peaks(args):
 
 
 def main_make_peaks():
-    """Runs the main peak making from command line"""
+    """Run the main peak making from command line."""
     args = parse_args_make_peaks(sys.argv[1:])
     filename = args.filename
     z_scores, chrom = open_wig(filename)

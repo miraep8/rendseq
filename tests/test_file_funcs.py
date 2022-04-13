@@ -1,8 +1,10 @@
+# -*- coding: utf-8 -*-
 import pytest
 from mock import patch
 from numpy import array
 from numpy.testing import assert_array_equal
-from rendseq.file_funcs import make_new_dir, open_wig, write_wig, validate_reads
+
+from rendseq.file_funcs import make_new_dir, open_wig, validate_reads, write_wig
 
 
 class TestValidateReads:

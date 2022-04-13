@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 """Functions needed for z-score transforming raw rendSeq data."""
-from os.path import abspath
-import sys
 import argparse
+import sys
 import warnings
+from os.path import abspath
+
 from numpy import mean, std, zeros
+
 from rendseq.file_funcs import make_new_dir, open_wig, validate_reads, write_wig
 
 
@@ -36,9 +38,9 @@ def _adjust_up(cur_ind, target_val, reads):
 
 
 def z_score(val, v_mean, v_std):
-    """
-    Calculates a z-score given a value, mean, and standard deviation
-        NOTE: Unlike a canonical z_score, the z_score() of a constant vector is 0
+    """Calculate a z-score given a value, mean, and standard deviation.
+
+    NOTE: Unlike a canonical z_score, the z_score() of a constant vector is 0
     """
     score = 0 if v_std == 0 else (val - v_mean) / v_std
     return score
@@ -66,19 +68,6 @@ def _remove_outliers(vals):
     return normalized_vals
 
 
-def calc_score(vals, min_r, cur_val):
-    """
-    calc_score will compute the z score (and first check if the std is zero).
-    Parameters:
-=======
-        for value in vals:
-            if v_std == 0 or abs((value - v_mean) / v_std) < 2.5:
-                new_v.append(value)
-    else:
-        new_v = vals
-    return new_v
-
-
 def _calc_score(vals, min_r, cur_val):
     """Compute the z score.
 
@@ -103,39 +92,37 @@ def _calc_score(vals, min_r, cur_val):
 
 
 def score_helper(start, stop, min_r, reads, i):
-    """
-    Finds the z-score of reads[i] relative to the subsection of reads
-        from start to stop, with a read cutoff of min_r
+    """Find the z-score of reads[i] relative to the subsection of reads.
+
+    Goes from start to stop, with a read cutoff of min_r
     """
     reads_outlierless = _remove_outliers(list(reads[start:stop, 1]))
-    return calc_score(reads_outlierless, min_r, reads[i, 1])
+    return _calc_score(reads_outlierless, min_r, reads[i, 1])
 
 
 def validate_gap_window(gap, w_sz):
-    """Checks that gap and window size are reasonable in r/l_score_helper"""
+    """Check that gap and window size are reasonable in r/l_score_helper."""
     if w_sz < 1:
         raise ValueError("Window size must be larger than 1 to find a z-score")
     if gap < 0:
         raise ValueError("Gap size must be at least zero to find a z-score")
     if gap == 0:
-        warnings.warn(
-            "Warning...a gap size of 0 includes the current position and may misrepresent peaks."
-        )
+        warnings.warn("Warning...a gap size of 0 includes the current position.")
 
 
 def _l_score_helper(gap, w_sz, min_r, reads, i):
     """Find the z_score based on reads to the left of the current pos."""
     validate_gap_window(gap, w_sz)
-    l_start = adjust_up(i - (gap + w_sz), reads[i, 0] - (gap + w_sz), reads)
-    l_stop = adjust_up(i - gap, reads[i, 0] - gap, reads)
+    l_start = _adjust_up(i - (gap + w_sz), reads[i, 0] - (gap + w_sz), reads)
+    l_stop = _adjust_up(i - gap, reads[i, 0] - gap, reads)
     return score_helper(l_start, l_stop, min_r, reads, i)
 
 
 def _r_score_helper(gap, w_sz, min_r, reads, i):
     """Find the z_score based on reads to the right of the current pos."""
     validate_gap_window(gap, w_sz)
-    r_start = adjust_down(i + gap, reads[i, 0] + gap, reads)
-    r_stop = adjust_down(i + gap + w_sz, reads[i, 0] + gap + w_sz, reads)
+    r_start = _adjust_down(i + gap, reads[i, 0] + gap, reads)
+    r_stop = _adjust_down(i + gap + w_sz, reads[i, 0] + gap + w_sz, reads)
     return score_helper(r_start, r_stop, min_r, reads, i)
 
 
@@ -194,7 +181,7 @@ def z_scores(reads, gap=5, w_sz=50, min_r=20):
 
 
 def parse_args_zscores(args):
-    """Parses command line arguments"""
+    """Parse command line arguments."""
     parser = argparse.ArgumentParser(
         description="Takes raw read file and\
                                         makes a modified z-score for each\
@@ -245,8 +232,8 @@ def parse_args_zscores(args):
 
 
 def main_zscores():
-    """
-    Run Z-score calculations.
+    """Run Z-score calculations.
+
     Effect: Writes messages to standard out. If --save-file flag,
     also writes output to disk.
     """

@@ -1,23 +1,26 @@
+# -*- coding: utf-8 -*-
+import sys
+
 import pytest
+from mock import patch
+from numpy import append, array, mean, std
+from numpy.testing import assert_array_almost_equal, assert_array_equal
+
 from rendseq.file_funcs import write_wig
 from rendseq.zscores import (
-    adjust_down,
-    adjust_up,
-    z_score,
-    remove_outliers,
-    calc_score,
-    validate_gap_window,
-    score_helper,
-    l_score_helper,
-    r_score_helper,
-    parse_args_zscores,
-    z_scores,
+    _adjust_down,
+    _adjust_up,
+    _calc_score,
+    _l_score_helper,
+    _r_score_helper,
+    _remove_outliers,
     main_zscores,
+    parse_args_zscores,
+    score_helper,
+    validate_gap_window,
+    z_score,
+    z_scores,
 )
-from numpy import array, append, mean, std
-from numpy.testing import assert_array_equal, assert_array_almost_equal
-from mock import patch
-import sys
 
 
 @pytest.fixture
@@ -197,7 +200,7 @@ class TestLWScoreHelper:
         min_r = 0
         i = 2
         with pytest.warns(UserWarning):
-            assert l_score_helper(0, 1, min_r, reads, i) == score_helper(
+            assert _l_score_helper(0, 1, min_r, reads, i) == score_helper(
                 1, 2, min_r, reads, i
             )
 
@@ -205,7 +208,7 @@ class TestLWScoreHelper:
         """A small gap"""
         min_r = 0
         i = 2
-        assert l_score_helper(1, 2, min_r, reads, i) == score_helper(
+        assert _l_score_helper(1, 2, min_r, reads, i) == score_helper(
             0, 1, min_r, reads, i
         )
 
@@ -213,7 +216,7 @@ class TestLWScoreHelper:
         """Window size is larger than array"""
         min_r = 0
         i = 2
-        assert l_score_helper(1, 100, min_r, reads, i) == score_helper(
+        assert _l_score_helper(1, 100, min_r, reads, i) == score_helper(
             0, 1, min_r, reads, i
         )
 
@@ -222,7 +225,7 @@ class TestLWScoreHelper:
         min_r = 0
         i = 2
         with pytest.warns(UserWarning):
-            assert r_score_helper(0, 1, min_r, reads, i) == score_helper(
+            assert _r_score_helper(0, 1, min_r, reads, i) == score_helper(
                 2, 3, min_r, reads, i
             )
 
@@ -230,14 +233,14 @@ class TestLWScoreHelper:
         """A small gap"""
         min_r = 0
         i = 2
-        assert r_score_helper(1, 109, min_r, reads, i) == score_helper(
+        assert _r_score_helper(1, 109, min_r, reads, i) == score_helper(
             3, 12, min_r, reads, i
         )
 
     def test_r_score_helper_largewindow(self, reads):
         min_r = 0
         i = 2
-        assert r_score_helper(1, 1000, min_r, reads, i) == score_helper(
+        assert _r_score_helper(1, 1000, min_r, reads, i) == score_helper(
             3, 13, min_r, reads, i
         )
 
@@ -281,7 +284,7 @@ class TestScoreHelper:
         min_r = 1
         i = 1
         assert score_helper(0, 4, 0, reads, 1) == pytest.approx(
-            calc_score(list(reads[0:4, 1]), min_r, reads[i, 1])
+            _calc_score(list(reads[0:4, 1]), min_r, reads[i, 1])
         )
 
     def test_score_helper_outlier(self, reads):
@@ -289,26 +292,26 @@ class TestScoreHelper:
         min_r = 1
         i = 1
         assert score_helper(0, 4, 0, reads + [800], 1) == pytest.approx(
-            calc_score(list(reads[0:4, 1]), min_r, reads[i, 1])
+            _calc_score(list(reads[0:4, 1]), min_r, reads[i, 1])
         )
 
 
 class TestCalcScore:
     def test_calc_score_normal(self, reads):
         """Run-of-the-mill zscore"""
-        assert calc_score(reads[:, 1:], 2, reads[1, 1:]) == pytest.approx(-0.2780832)
+        assert _calc_score(reads[:, 1:], 2, reads[1, 1:]) == pytest.approx(-0.2780832)
 
     def test_calc_score_highmin(self, reads):
         """Reads don't hit minimimum background"""
-        assert calc_score(reads[:, 1:], 10000, 1) == None
+        assert _calc_score(reads[:, 1:], 10000, 1) == None
 
     def test_calc_score_constant(self):
         """Reads are constant"""
-        assert calc_score(array([1] * 6), 0, 1) == 0
+        assert _calc_score(array([1] * 6), 0, 1) == 0
 
     def test_calc_score_empty(self):
         """Array is empty"""
-        assert calc_score(array([]), 0, 1) == None
+        assert _calc_score(array([]), 0, 1) == None
 
 
 class TestZScore:
@@ -325,74 +328,74 @@ class TestZScore:
 class TestRemoveOutliers:
     def test_remove_outliers_empty(self):
         """Remove outliers from empty array"""
-        assert_array_equal(remove_outliers(array([])), array([]))
+        assert_array_equal(_remove_outliers(array([])), array([]))
 
     def test_remove_outliers_homogen(self):
         """No outliers in homogenous array"""
         test_array = array([1] * 6)
-        assert_array_equal(remove_outliers(test_array), test_array)
+        assert_array_equal(_remove_outliers(test_array), test_array)
 
     def test_remove_outliers_clearOutlier(self):
         """A clear outlier"""
         test_array = array([i for i in range(20)] + [80])
-        assert_array_equal(remove_outliers(test_array), test_array[0:-1])
+        assert_array_equal(_remove_outliers(test_array), test_array[0:-1])
 
     def test_remove_outliers_borderline(self):
         """Two values, near 2.5 stds away, but only one above"""
         test_array = append(array([1] * 10), [4.2, 5])
 
-        assert_array_equal(remove_outliers(test_array), test_array[0:-1])
+        assert_array_equal(_remove_outliers(test_array), test_array[0:-1])
 
 
 class TestAdjustDown:
     def test_adjust_down_empty(self):
         """Can't adjust down empty reads"""
         with pytest.raises(ValueError) as e_info:
-            adjust_down(3, 0, array([]))
+            _adjust_down(3, 0, array([]))
 
         assert e_info.value.args[0] == "requires non-empty reads"
 
     def test_adjust_down_inf(self, reads):
         """Target higher than all indicies"""
-        assert adjust_down(3, 1000, reads) == 3
+        assert _adjust_down(3, 1000, reads) == 3
 
     def test_adjust_down_onestep(self, reads):
         """Target one step away from current"""
-        assert adjust_down(2, 2, reads) == 1
+        assert _adjust_down(2, 2, reads) == 1
 
     def test_adjust_down_multistep(self, reads):
         """Target multiple steps away from current"""
-        assert adjust_down(3, 2, reads) == 1
+        assert _adjust_down(3, 2, reads) == 1
 
     def test_adjust_down_zero(self, reads):
         """Target lower than any index"""
-        assert adjust_down(1, -1, reads) == 0
+        assert _adjust_down(1, -1, reads) == 0
 
     def test_adjust_down_oob(self, reads):
         """Current is higher than any index"""
-        assert adjust_down(5, 2, reads) == 1
+        assert _adjust_down(5, 2, reads) == 1
 
 
 class TestAdjustUp:
     def test_adjust_up_empty(self):
         """Can't adjust up empty reads"""
         with pytest.raises(ValueError) as e_info:
-            adjust_up(3, 0, array([]))
+            _adjust_up(3, 0, array([]))
 
         assert e_info.value.args[0] == "requires non-empty reads"
 
     def test_adjust_up_onestep(self, reads):
         """Target one step away from current"""
-        assert adjust_up(1, 3, reads) == 2
+        assert _adjust_up(1, 3, reads) == 2
 
     def test_adjust_up_multistep(self, reads):
         """Target multiple steps away from current"""
-        assert adjust_up(0, 3, reads) == 2
+        assert _adjust_up(0, 3, reads) == 2
 
     def test_adjust_up_max(self, reads):
         """Target higher than any index"""
-        assert adjust_up(1, 1000, reads) == 13
+        assert _adjust_up(1, 1000, reads) == 13
 
     def test_adjust_up_oob(self, reads):
         """Current is lower than any index"""
-        assert adjust_up(2, 0, reads) == 2
+        assert _adjust_up(2, 0, reads) == 2

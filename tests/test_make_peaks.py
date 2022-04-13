@@ -1,21 +1,24 @@
+# -*- coding: utf-8 -*-
+import sys
+from os import remove
+from os.path import exists
+
 import pytest
+from mock import patch
+from numpy import array, ndim, where
+from numpy.random import normal
+from numpy.testing import assert_array_almost_equal, assert_array_equal
+
 from rendseq.file_funcs import write_wig
 from rendseq.make_peaks import (
-    calc_thresh,
-    thresh_peaks,
-    make_kink_fig,
+    _calc_thresh,
+    _make_kink_fig,
+    _populate_trans_mat,
     hmm_peaks,
-    populate_trans_mat,
-    parse_args_make_peaks,
     main_make_peaks,
+    parse_args_make_peaks,
+    thresh_peaks,
 )
-from os.path import exists
-from os import remove
-from numpy import array, append, mean, std, where, ndim
-from numpy.testing import assert_array_equal, assert_array_almost_equal
-from numpy.random import normal
-from mock import patch
-import sys
 
 
 @pytest.fixture
@@ -145,7 +148,7 @@ class TestParseArgsAndMain:
         args = parse_args_make_peaks(regular_argslist)
         assert args.filename == "test_file"
         assert args.method == "thresh"
-        assert args.save_file == False
+        assert not args.save_file
 
     def test_parse_args_defaults(self):
         """Makes sure the arg defaults are as-expected"""
@@ -160,7 +163,7 @@ class TestParseArgsAndMain:
 class TestPopulateTransMat:
     # TODO: Need more detailed tests
     def test_populate_trans_mat(self, capfd, z_scores):
-        matricies = populate_trans_mat(
+        matricies = _populate_trans_mat(
             z_scores, 10, 2, array([[0.5, 0.5], [0.5, 0.5]]), [1, 100]
         )
 
@@ -189,7 +192,9 @@ class TestHmmPeaks:
         z_scores[500, 1] = 10e4
         peaks_almost_1 = array([[loc, z] for loc, z in zip(range(1, 1000), [1] * 1000)])
         peaks_almost_1[500, 1] = 100
-        assert_array_equal(hmm_peaks(z_scores, peak_center=10e4), peaks_almost_1)
+
+        with pytest.warns(RuntimeWarning):
+            assert_array_equal(hmm_peaks(z_scores, peak_center=10e4), peaks_almost_1)
 
         # Test print output
         out, err = capfd.readouterr()
@@ -201,7 +206,7 @@ class TestHmmPeaks:
 def test_make_kink_fig(tmpdir):
     """Just make sure it makes a plot file"""
     file = tmpdir.join("file")
-    make_kink_fig(file.strpath + ".png", [0, 1], [1, 0], [1, 0], [1, 2])
+    _make_kink_fig(file.strpath + ".png", [0, 1], [1, 0], [1, 0], [1, 2])
     assert exists(file.strpath + ".png")
 
 
@@ -235,15 +240,15 @@ class TestCalcThresh:
     def test_calc_thresh_default(self, z_scores):
         """Threshold with invalid thresh procedure"""
         with pytest.warns(UserWarning):
-            assert calc_thresh(z_scores, "") == 15
+            assert _calc_thresh(z_scores, "") == 15
 
     def test_calc_thresh_expected_val(self, z_scores):
         """Expected_val threshold"""
-        assert calc_thresh(z_scores, "expected_val") == pytest.approx(3.1)
+        assert _calc_thresh(z_scores, "expected_val") == pytest.approx(3.1)
 
     def test_calc_thresh_kink(self, tmpdir, z_scores):
         """Kink threshold"""
         file = tmpdir.join("file.txt")
         kink_file = file.strpath[0:-8] + "test_kink.png"
-        assert calc_thresh(z_scores, "kink", kink_file) == pytest.approx(8.3)
+        assert _calc_thresh(z_scores, "kink", kink_file) == pytest.approx(8.3)
         assert exists(kink_file)

@@ -1,21 +1,28 @@
 # -*- coding: utf-8 -*-
 """Functions for fetching, creating, and opening raw and processed data files."""
 
-from os import mkdir, path
+from os import mkdir
+from os.path import isdir
 
 from numpy import asarray, delete, where
 from pandas import read_csv
 
 
 def validate_reads(reads):
-    """
-    Parameters:
+    """Make sure the given reads meet our format requirements.
+
+    Parameters
+    ----------
         -reads (2xn array): a 2xn array with the first column being position
             and the second column being the count at that position (raw read,
             z_score etc)
-    Returns:
-        NoneType
-    Effects:
+
+    Returns
+    -------
+    NoneType
+
+    Effects
+    -------
         Throws exceptions if reads are not correctly formatted
     """
     # Check if reads are empty
@@ -25,7 +32,7 @@ def validate_reads(reads):
     # If reads.shape doesn't work, then it's not an np array
     try:
         shape = reads.shape
-    except Exception as e:
+    except Exception:
         raise ValueError(f"reads must be numpy array, not {type(reads)}")
 
     # Must have two columns
@@ -34,7 +41,7 @@ def validate_reads(reads):
 
 
 def write_wig(wig_track, wig_file_name, chrom_name):
-   """Write provided data to the wig file.
+    """Write provided data to the wig file.
 
     Parameters
     ----------
@@ -69,7 +76,7 @@ def open_wig(filename):
     with open(filename, "r", encoding="utf8") as file:
         try:
             next(file)
-        except StopIteration as e:
+        except StopIteration:
             raise ValueError(f"{filename} appears to have zero lines")
 
         line = file.readline()
