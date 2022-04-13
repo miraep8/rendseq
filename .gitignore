@@ -1,8 +1,5 @@
 *~
 *.egg-info/
 *.toml
-rendseq/__pycache__/zscores.cpython-310.pyc
-rendseq/.ipynb_checkpoints/make_peaks-checkpoint.py
-rendseq/.ipynb_checkpoints/zscores-checkpoint.py
-rendseq/__pycache__/file_funcs.cpython-310.pyc
+*.ipynb_checkpoints.*
 *.pyc
