@@ -40,7 +40,7 @@ def _adjust_up(cur_ind, target_val, reads):
 def z_score(val, v_mean, v_std):
     """Calculate a z-score given a value, mean, and standard deviation.
 
-    NOTE: Unlike a canonical z_score, the z_score() of a constant vector is 0
+    NOTE: The z_score() of a constant vector is 0
     """
     score = 0 if v_std == 0 else (val - v_mean) / v_std
     return score
