@@ -13,7 +13,7 @@ Otherwise our workflow follows the general Github Work Flow, ie:
  * Add your changes
  * If needed - please add some new tests to test the change you made
  * Verify that your code doesn't break any pre-existing test cases
- * Make sure your code follows good style conventions.  We use PEP 8 style conventions.  We run [pylint](https://pylint.pycqa.org/en/latest/intro.html) on our code to verify compliance and request you do the same! 
+ * Make sure your code follows good style conventions.  We use PEP 8 style conventions.  We run flake8, black and pydocstyle on all our files.  If you want to check your code for style compliance, we recommend you install [pre-commit](https://pre-commit.com/) in your fork of the repo! :) 
  * Submit a pull request.
 
 
