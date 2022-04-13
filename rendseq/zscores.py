@@ -4,6 +4,7 @@ import argparse
 import sys
 import warnings
 from os.path import abspath
+
 from numpy import mean, std, zeros
 
 from rendseq.file_funcs import make_new_dir, open_wig, validate_reads, write_wig
