@@ -1,23 +1,16 @@
-"""
-The z_scores.py module contains the code for transforming raw rendSeq data into
-    z_score transformed data.  It also has many helper functions that assist in
-    this calculation.
-"""
+# -*- coding: utf-8 -*-
+"""Functions needed for z-score transforming raw rendSeq data."""
 from os.path import abspath
 import sys
 import argparse
 import warnings
-from numpy import zeros, mean, std
-from rendseq.file_funcs import write_wig, open_wig, make_new_dir, validate_reads
+from numpy import mean, std, zeros
+from rendseq.file_funcs import make_new_dir, open_wig, validate_reads, write_wig
 
 
-def adjust_down(cur_ind, target_val, reads):
-    """
-    adjust_down is a helper function - will return the index of the lower read
-        that is within range for the z-score calculation
-    """
+def _adjust_down(cur_ind, target_val, reads):
+    """Calculate the lower reads index in range for the z-score calculation."""
     validate_reads(reads)
-
     cur_ind = min(cur_ind, len(reads) - 1)
     while reads[cur_ind, 0] > target_val:
         cur_ind -= 1
@@ -27,11 +20,8 @@ def adjust_down(cur_ind, target_val, reads):
     return cur_ind
 
 
-def adjust_up(cur_ind, target_val, reads):
-    """
-    adjust_up is a helper function - will return the index of the upper read
-        that is within range for the z-score calculation
-    """
+def _adjust_up(cur_ind, target_val, reads):
+    """Calculate the higher reads index in range for the z-score calculation."""
     if len(reads) < 1:
         raise ValueError("requires non-empty reads")
 
@@ -40,7 +30,6 @@ def adjust_up(cur_ind, target_val, reads):
     while reads[cur_ind, 0] < target_val:
         if cur_ind >= len(reads) - 1:
             break
-
         cur_ind += 1
 
     return cur_ind
@@ -55,15 +44,15 @@ def z_score(val, v_mean, v_std):
     return score
 
 
-def remove_outliers(vals):
-    """
-    remove_outliers will take a list of values and "normalize" it by trimming
-        potentially extreme values.  We choose to remove rather than winsorize
-        to avoid artificial deflation of the standard deviation. Extreme values
-        are removed if they are greater than 2.5 std above the mean
-    Parameters:
+def _remove_outliers(vals):
+    """Normalize window of reads by removing outliers (values 2.5 std > mean).
+
+    Parameters
+    ----------
         -vals: an array of raw read values to be processed
-    Returns:
+
+    Returns
+    -------
         -new_v: another array of raw values which has had the extreme values
             removed.
     """
@@ -81,10 +70,26 @@ def calc_score(vals, min_r, cur_val):
     """
     calc_score will compute the z score (and first check if the std is zero).
     Parameters:
+=======
+        for value in vals:
+            if v_std == 0 or abs((value - v_mean) / v_std) < 2.5:
+                new_v.append(value)
+    else:
+        new_v = vals
+    return new_v
+
+
+def _calc_score(vals, min_r, cur_val):
+    """Compute the z score.
+
+    Parameters
+    ----------
         -vals raw read count values array
         -min_r: the minumum number of reads needed to calculate score
         -cur_val: the value for which the z score is being calculated
-    Returns:
+
+    Returns
+    -------
         -score: the zscore for the current value, or None if insufficent reads
     """
     score = None
@@ -102,7 +107,7 @@ def score_helper(start, stop, min_r, reads, i):
     Finds the z-score of reads[i] relative to the subsection of reads
         from start to stop, with a read cutoff of min_r
     """
-    reads_outlierless = remove_outliers(list(reads[start:stop, 1]))
+    reads_outlierless = _remove_outliers(list(reads[start:stop, 1]))
     return calc_score(reads_outlierless, min_r, reads[i, 1])
 
 
@@ -118,24 +123,16 @@ def validate_gap_window(gap, w_sz):
         )
 
 
-def l_score_helper(gap, w_sz, min_r, reads, i):
-    """
-    l_score_helper will find the indexes of reads to use for a z_score
-        calculation with reads to the left of the current read, and will return
-        the calculated score.
-    """
+def _l_score_helper(gap, w_sz, min_r, reads, i):
+    """Find the z_score based on reads to the left of the current pos."""
     validate_gap_window(gap, w_sz)
     l_start = adjust_up(i - (gap + w_sz), reads[i, 0] - (gap + w_sz), reads)
     l_stop = adjust_up(i - gap, reads[i, 0] - gap, reads)
     return score_helper(l_start, l_stop, min_r, reads, i)
 
 
-def r_score_helper(gap, w_sz, min_r, reads, i):
-    """
-    r_score_helper will find the indexes of reads to use for a z_score
-        calculation with reads to the right of the current read, and will return
-        the calculated score.
-    """
+def _r_score_helper(gap, w_sz, min_r, reads, i):
+    """Find the z_score based on reads to the right of the current pos."""
     validate_gap_window(gap, w_sz)
     r_start = adjust_down(i + gap, reads[i, 0] + gap, reads)
     r_stop = adjust_down(i + gap + w_sz, reads[i, 0] + gap + w_sz, reads)
@@ -143,10 +140,10 @@ def r_score_helper(gap, w_sz, min_r, reads, i):
 
 
 def z_scores(reads, gap=5, w_sz=50, min_r=20):
-    """
-    z_scores will generate a companion z_score file based on the local data
-        around each read in the read file.
-    Parameters:
+    """Perform modified z-score transformation of reads.
+
+    Parameters
+    ----------
         -reads 2xn array - raw rendseq reads
         -gap (interger):   number of reads surround the current read of
             interest that should be excluded in the z_score calculation.
@@ -157,11 +154,12 @@ def z_scores(reads, gap=5, w_sz=50, min_r=20):
             is excluded.  note this is sum of reads in the window
         -file_name (string): the base file_name, can be passed in to customize
             the message printed
-    Returns:
+
+    Returns
+    -------
         -z_score (2xn array): a 2xn array with the first column being position
             and the second column being the z_score.
     """
-
     # make array of zscores - same length as raw reads, trimming based on window size:
     z_score = zeros([len(reads) - 2 * (gap + w_sz), 2])
 
@@ -171,9 +169,9 @@ def z_scores(reads, gap=5, w_sz=50, min_r=20):
     # Iterate through each valid read, recording z-score
     for i in range((gap + w_sz + 1), (len(reads) - (gap + w_sz))):
         # calculate the z score with values from the left:
-        l_score = l_score_helper(gap, w_sz, min_r, reads, i)
+        l_score = _l_score_helper(gap, w_sz, min_r, reads, i)
         # calculate z score with reads from the right:
-        r_score = r_score_helper(gap, w_sz, min_r, reads, i)
+        r_score = _r_score_helper(gap, w_sz, min_r, reads, i)
 
         # The location in which this z-score should go into the final array
         i_score_pos = i - (gap + w_sz)

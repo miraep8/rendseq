@@ -1,22 +1,23 @@
-"""
-peaks.py will take a zscore and find the peaks in it using the vertibi algorithm.
-"""
+# -*- coding: utf-8 -*-
+"""Take normalized raw data find the peaks in it."""
+
 import argparse
 import sys
 from os.path import abspath
 import warnings
 from math import log, inf
+
 import numpy as np
-from scipy.stats import norm
 from matplotlib import pyplot as plt
-from rendseq.file_funcs import open_wig, write_wig, make_new_dir
+from scipy.stats import norm
 
+from rendseq.file_funcs import make_new_dir, open_wig, write_wig
 
-def populate_trans_mat(z_scores, peak_center, spread, trans_m, states):
-    """
-    populate_trans_mat will calculate the values for the transition matrix that
-        is used in the vertibi algortihm to find the optimal path.
-    Paramters:
+def _populate_trans_mat(z_scores, peak_center, spread, trans_m, states):
+    """Calculate the Vertibi Algorithm transition matrix.
+
+    Parameters
+    ----------
         -z_scores (2xn array): - required: first column is position (ie bp
             location) second column is a modified z_score for that position.
         -peak_center (float): the mean of the emission probability distribution
@@ -29,30 +30,36 @@ def populate_trans_mat(z_scores, peak_center, spread, trans_m, states):
     print("Calculating Transition Matrix")
     trans_1 = np.zeros([len(states), len(z_scores)])
     trans_2 = np.zeros([len(states), len(z_scores)]).astype(int)
-    trans_1[:,0] = 1
-    
-    ## emission probabilities matrix (2 x n)
-    probs = np.zeros(shape=(len(states),len(z_scores)))
-    probs[0,:] = norm.pdf(z_scores[:,1]) ## note zscores[:,1] is where all the zscores are
-    probs[1,:] = norm.pdf(z_scores[:,1], peak_center, spread)
-    
-    #Vertibi Algorithm:
-    for i in range(1,len(z_scores)):
+    trans_1[:, 0] = 1
+
+    # emission probabilities matrix (2 x n)
+    probs = np.zeros(shape=(len(states), len(z_scores)))
+    probs[0, :] = norm.pdf(
+        z_scores[:, 1]
+    )  # note zscores[:,1] is where all the zscores are
+    probs[1, :] = norm.pdf(z_scores[:, 1], peak_center, spread)
+
+    # Vertibi Algorithm:
+    for i in range(1, len(z_scores)):
         # we use log probabilities for computational reasons. -Inf means 0 probability
-        paths = np.zeros((len(states),len(states)))
-        paths += np.expand_dims(trans_1[:,i-1], axis=1) # adds log(trans_1_sub) column-wise
-        paths += np.log(trans_m)                     # adds log(trans_m) element-wise             
-        paths += np.expand_dims(np.log(probs[:,i]), axis=0)   # adds log(probs_sub) row-wise
-        trans_2[:,i] = np.argmax(paths, axis=0)
-        trans_1[:,i] = np.max(paths, axis=0)
+        paths = np.zeros((len(states), len(states)))
+        paths += np.expand_dims(
+            trans_1[:, i - 1], axis=1
+        )  # adds log(trans_1_sub) column-wise
+        paths += np.log(trans_m)  # adds log(trans_m) element-wise
+        paths += np.expand_dims(
+            np.log(probs[:, i]), axis=0
+        )  # adds log(probs_sub) row-wise
+        trans_2[:, i] = np.argmax(paths, axis=0)
+        trans_1[:, i] = np.max(paths, axis=0)
     return trans_1, trans_2
 
 
 def hmm_peaks(z_scores, i_to_p=1 / 1000, p_to_p=1 / 1.5, peak_center=10, spread=2):
-    """
-    hmm_peaks implements the vertibi algorithm to fit a HMM to the data given
-        the z_scores of the raw data.
-    Parameters:
+    """Fit peaks to the provided z_scores data set using the vertibi algorithm.
+
+    Parameters
+    ----------
         -z_scores (2xn array): - required: first column is position (ie bp
             location) second column is a modified z_score for that position.
         -i_to_p (float): value should be between zero and 1, represents
@@ -66,7 +73,9 @@ def hmm_peaks(z_scores, i_to_p=1 / 1000, p_to_p=1 / 1.5, peak_center=10, spread=
             for the peak state.
         -spread (float): the standard deviation of the peak emmission
             distribution.
-    Returns:
+
+    Returns
+    -------
         -peaks: a 2xn array with the first column being position and the second
             column being a peak assignment.
     """
@@ -77,7 +86,7 @@ def hmm_peaks(z_scores, i_to_p=1 / 1000, p_to_p=1 / 1.5, peak_center=10, spread=
     peaks = np.zeros([len(z_scores), 2])
     peaks[:, 0] = z_scores[:, 0]
     states = [1, 100]  # how internal and peak are represented in the wig file
-    trans_1, trans_2 = populate_trans_mat(
+    trans_1, trans_2 = _populate_trans_mat(
         z_scores, peak_center, spread, trans_m, states
     )
     # Now we trace backwards and find the most likely path:
@@ -91,16 +100,16 @@ def hmm_peaks(z_scores, i_to_p=1 / 1000, p_to_p=1 / 1.5, peak_center=10, spread=
     return peaks
 
 
-def make_kink_fig(save_file, seen, exp, pnts, thresh):
-    """
-    make_kink_fig is a helper function which creates a figure comparing the
-        number of observed positions with a z score equal to or greater than a
-        threshold versus the expected number of positions with that z score.
-    Parameters:
-        - save_fig - the name of the file to save the plot to.
-        - seen - the obs number of positions with a given z score or greater
-        - exp - the exp number of positions with a given z score or greater
-        - pnts - the z score values/x axis of the plot.
+def _make_kink_fig(save_file, seen, exp, pnts, thresh):
+    """Create a figure comparing the obs vs exp z score distributions.
+
+    Parameters
+    ----------
+        - save_fig (str) - the name of the file to save the plot to.
+        - seen (1xn array) - the obs number of positions with a given z score or greater
+        - exp (1xn array) - the exp number of positions with a given z score or greater
+        - pnts (1xn array) - the z score values/x axis of the plot.
+        - thresh (int) - the threshold value which was ultimately selected.
     """
     plt.plot(pnts, seen, label="Observed")
     plt.plot(pnts, exp, label="Expected")
@@ -111,18 +120,18 @@ def make_kink_fig(save_file, seen, exp, pnts, thresh):
     plt.legend()
     plt.savefig(save_file)
 
+ 
+def _calc_thresh(z_scores, method, kink_img="./kink.png"):
+    """Calculate a threshold for z-scores file using the method provided.
 
-def calc_thresh(z_scores, method, kink_img="./kink.png"):
-    """
-    calc_thresh will calculate and appropriate threshold for a threshold based
-        peak calling method if one was not supplied. It can automatically
-        select this threshold based on several methods (which the user can
-        choose between).
-    Parameters:
+    Parameters
+    ----------
         - z_scores (2xn array): the calculated z scores, where the first column
             represents the nt position and the second represents a z score.
         - method (string): the name of the threshold calculating method to use.
-    Returns:
+
+    Returns
+    -------
         - threshold (float): the calculated threshold.
     """
     methods = ["expected_val", "kink"]
@@ -141,7 +150,8 @@ def calc_thresh(z_scores, method, kink_img="./kink.png"):
             exp[ind] = (1 - norm.cdf(point)) * len(z_scores)
             if seen[ind] >= factor_exceed * exp[ind] and thresh == -1:
                 thresh = point
-        make_kink_fig(kink_img, seen, exp, pnts, thresh)
+              
+        _make_kink_fig(kink_img, seen, exp, pnts, thresh)
 
     else:
         warnings.warn(
@@ -157,11 +167,10 @@ def calc_thresh(z_scores, method, kink_img="./kink.png"):
 
 
 def thresh_peaks(z_scores, thresh=None, method="kink"):
-    """
-    thresh_peaks will calculate a peaks from the provided z scores.  This
-        approach will count all positions with a z score above a certain
-        threshold as a peak. (and can also calculate this threshold)
-    Parameters:
+    """Find peaks by calling z-scores above a threshold as a peak.
+
+    Parameters
+    ----------
         - z_scores - a 2xn array of nt positions and zscores at that pos.
         - thresh - the threshold value to use.  If none is provided it will be
             automatically calculated.
@@ -169,7 +178,7 @@ def thresh_peaks(z_scores, thresh=None, method="kink"):
             if none is provided.  Default method is "kink"
     """
     if thresh is None:
-        thresh = calc_thresh(z_scores, method)
+        thresh = _calc_thresh(z_scores, method)
     peaks = np.zeros([len(z_scores), 2])
     peaks[:, 0] = z_scores[:, 0]
     peaks[:, 1] = (z_scores[:, 1] > thresh).astype(int)
@@ -204,7 +213,6 @@ def parse_args_make_peaks(args):
 def main_make_peaks():
     """Runs the main peak making from command line"""
     args = parse_args_make_peaks(sys.argv[1:])
-
     filename = args.filename
     z_scores, chrom = open_wig(filename)
     if args.method == "thresh":
