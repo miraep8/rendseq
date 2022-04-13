@@ -1,15 +1,16 @@
-'''
+"""
 file_funcs.py contains lots of functions which help with fetching,
 creating, and opening relevant files
-'''
+"""
 
 from os import mkdir
 from os.path import isdir
 from numpy import where, delete, asarray
 from pandas import read_csv
 
+
 def validate_reads(reads):
-    '''
+    """
     Parameters:
         -reads (2xn array): a 2xn array with the first column being position
             and the second column being the count at that position (raw read,
@@ -18,7 +19,7 @@ def validate_reads(reads):
         NoneType
     Effects:
         Throws exceptions if reads are not correctly formatted
-    '''
+    """
     # Check if reads are empty
     if len(reads) < 1:
         raise ValueError("requires non-empty reads")
@@ -35,24 +36,25 @@ def validate_reads(reads):
 
 
 def write_wig(wig_track, wig_file_name, chrom_name):
-    '''
+    """
     write_wig writes the wig track to the wig file with proper formatting. Also
         checks that there are no indices less than 1.
     Parameters:
         - wig_track (required) - the wig data you wish to write (in 2xn array)
         - wig_file_name (string) - the new file you will write to
-    '''
+    """
     validate_reads(wig_track)
-    d_inds = where(wig_track[:,0] < 1)
-    wig_track = delete(wig_track, d_inds, axis = 0)
-    with open(wig_file_name, 'w+', encoding='utf-8') as wig_file:
-        wig_file.write('track type=wiggle_0\n')
-        wig_file.write(f'variableStep chrom={chrom_name}\n')
+    d_inds = where(wig_track[:, 0] < 1)
+    wig_track = delete(wig_track, d_inds, axis=0)
+    with open(wig_file_name, "w+", encoding="utf-8") as wig_file:
+        wig_file.write("track type=wiggle_0\n")
+        wig_file.write(f"variableStep chrom={chrom_name}\n")
         for i in range(len(wig_track)):
-            wig_file.write(f'{int(wig_track[i,0])}\t{wig_track[i,1]}\n')
+            wig_file.write(f"{int(wig_track[i,0])}\t{wig_track[i,1]}\n")
+
 
 def open_wig(filename):
-    '''
+    """
     open_wig opens the provided wig file and puts the contents into a 2xn array
     Parameters:
         -filename (string) - required: the string containing the location of
@@ -61,24 +63,25 @@ def open_wig(filename):
         -reads (2xn array): a 2xn array with the first column being position
             and the second column being the count at that position (raw read,
             z_score etc)
-    '''
-    #first we will read the chrom from the second line in the wig file:
-    with open(filename, 'r', encoding="utf8") as file:
+    """
+    # first we will read the chrom from the second line in the wig file:
+    with open(filename, "r", encoding="utf8") as file:
         try:
             next(file)
         except StopIteration as e:
             raise ValueError(f"{filename} appears to have zero lines")
 
         line = file.readline()
-        chrom = line[line.rfind('=') + 1:].rstrip()
+        chrom = line[line.rfind("=") + 1 :].rstrip()
     # next we read all the wig file data and return that if it's valid:
-    reads = asarray(read_csv(filename, sep = '\t', header = 1, names = ['bp', 'count']))
+    reads = asarray(read_csv(filename, sep="\t", header=1, names=["bp", "count"]))
     validate_reads(reads)
-    
+
     return reads, chrom
 
+
 def make_new_dir(dir_parts):
-    '''
+    """
     make_new_dir is a helper function which joins together the parts of the
         directory name and checks if it already exists as a directory.  If it
         doesn't exist alread it makes the directory.
@@ -86,8 +89,8 @@ def make_new_dir(dir_parts):
         - dir_parts  - a list of strings to be joined to make the directory name
     Returns:
         - dir_str - the directory name
-    '''
-    dir_str = ''.join(dir_parts)
+    """
+    dir_str = "".join(dir_parts)
     if not isdir(dir_str):
         mkdir(dir_str)
     return dir_str

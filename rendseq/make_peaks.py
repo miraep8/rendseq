@@ -1,6 +1,6 @@
-'''
+"""
 peaks.py will take a zscore and find the peaks in it using the vertibi algorithm.
-'''
+"""
 import argparse
 import sys
 from os.path import abspath
@@ -11,8 +11,9 @@ from scipy.stats import norm
 from matplotlib import pyplot as plt
 from rendseq.file_funcs import open_wig, write_wig, make_new_dir
 
+
 def populate_trans_mat(z_scores, peak_center, spread, trans_m, states):
-    '''
+    """
     populate_trans_mat will calculate the values for the transition matrix that
         is used in the vertibi algortihm to find the optimal path.
     Paramters:
@@ -24,29 +25,37 @@ def populate_trans_mat(z_scores, peak_center, spread, trans_m, states):
             distribution.
         -trans_m (matrix): the transition probabilities between states.
         -states (matrix): how internal and peak are represented in the wig file
-    '''
-    print('Calculating Transition Matrix')
+    """
+    print("Calculating Transition Matrix")
     trans_1 = np.zeros([len(states), len(z_scores)])
     trans_2 = np.zeros([len(states), len(z_scores)]).astype(int)
-    trans_1[:,0] = 1
-    #Vertibi Algorithm:
-    for i in range(1,len(z_scores)):
-        #emission probabilities:
-        probs = [norm.pdf(z_scores[i,1]), norm.pdf(z_scores[i,1], peak_center, spread)]
+    trans_1[:, 0] = 1
+    # Vertibi Algorithm:
+    for i in range(1, len(z_scores)):
+        # emission probabilities:
+        probs = [
+            norm.pdf(z_scores[i, 1]),
+            norm.pdf(z_scores[i, 1], peak_center, spread),
+        ]
         # we use log probabilities for computational reasons. -Inf means 0 probability
         for j in range(len(states)):
             paths = np.zeros([len(states), 1])
             for k in range(len(states)):
-                if (trans_1[k, i-1] == -inf) or (trans_m[k,j] == 0) or (probs[j] == 0):
+                if (
+                    (trans_1[k, i - 1] == -inf)
+                    or (trans_m[k, j] == 0)
+                    or (probs[j] == 0)
+                ):
                     paths[k] = -inf
                 else:
-                    paths[k] = trans_1[k, i-1] + log(trans_m[k, j]) + log(probs[j])
-            trans_2[j,i] = np.argmax(paths)
-            trans_1[j,i] = paths[trans_2[j,i]]
+                    paths[k] = trans_1[k, i - 1] + log(trans_m[k, j]) + log(probs[j])
+            trans_2[j, i] = np.argmax(paths)
+            trans_1[j, i] = paths[trans_2[j, i]]
     return trans_1, trans_2
 
-def hmm_peaks(z_scores, i_to_p = 1/1000, p_to_p = 1/1.5, peak_center = 10, spread = 2):
-    '''
+
+def hmm_peaks(z_scores, i_to_p=1 / 1000, p_to_p=1 / 1.5, peak_center=10, spread=2):
+    """
     hmm_peaks implements the vertibi algorithm to fit a HMM to the data given
         the z_scores of the raw data.
     Parameters:
@@ -66,25 +75,30 @@ def hmm_peaks(z_scores, i_to_p = 1/1000, p_to_p = 1/1.5, peak_center = 10, sprea
     Returns:
         -peaks: a 2xn array with the first column being position and the second
             column being a peak assignment.
-   '''
-    print('Finding Peaks')
-    trans_m = np.asarray([[(1 - i_to_p),(i_to_p)],[p_to_p,(1 - p_to_p)]]) #transition probability
-    peaks = np.zeros([len(z_scores),2])
-    peaks[:,0] = z_scores[:,0]
-    states = [1,100] # how internal and peak are represented in the wig file
-    trans_1, trans_2 = populate_trans_mat(z_scores, peak_center, spread, trans_m, states)
-    #Now we trace backwards and find the most likely path:
+    """
+    print("Finding Peaks")
+    trans_m = np.asarray(
+        [[(1 - i_to_p), (i_to_p)], [p_to_p, (1 - p_to_p)]]
+    )  # transition probability
+    peaks = np.zeros([len(z_scores), 2])
+    peaks[:, 0] = z_scores[:, 0]
+    states = [1, 100]  # how internal and peak are represented in the wig file
+    trans_1, trans_2 = populate_trans_mat(
+        z_scores, peak_center, spread, trans_m, states
+    )
+    # Now we trace backwards and find the most likely path:
     max_inds = np.zeros([len(peaks)]).astype(int)
     max_inds[len(peaks) - 1] = int(np.argmax(trans_1[:, len(trans_1)]))
-    peaks[1,-1] = states[max_inds[len(peaks)-1]]
+    peaks[1, -1] = states[max_inds[len(peaks) - 1]]
     for index in reversed(list(range(len(peaks)))):
         max_inds[index - 1] = trans_2[max_inds[index], index]
         peaks[index - 1, 1] = states[max_inds[index - 1]]
-    print(f'Found {sum(peaks[:,1] > 1)} Peaks')
+    print(f"Found {sum(peaks[:,1] > 1)} Peaks")
     return peaks
 
+
 def make_kink_fig(save_file, seen, exp, pnts, thresh):
-    '''
+    """
     make_kink_fig is a helper function which creates a figure comparing the
         number of observed positions with a z score equal to or greater than a
         threshold versus the expected number of positions with that z score.
@@ -93,18 +107,19 @@ def make_kink_fig(save_file, seen, exp, pnts, thresh):
         - seen - the obs number of positions with a given z score or greater
         - exp - the exp number of positions with a given z score or greater
         - pnts - the z score values/x axis of the plot.
-    '''
-    plt.plot(pnts, seen, label = 'Observed')
-    plt.plot(pnts, exp, label = 'Expected')
-    plt.plot([thresh, thresh], [max(exp)*10, min(exp)/10], label = 'Threshold')
-    plt.yscale('log')
-    plt.ylabel('Number of Positions with Z score Greater than or equal to')
-    plt.xlabel('Z score')
+    """
+    plt.plot(pnts, seen, label="Observed")
+    plt.plot(pnts, exp, label="Expected")
+    plt.plot([thresh, thresh], [max(exp) * 10, min(exp) / 10], label="Threshold")
+    plt.yscale("log")
+    plt.ylabel("Number of Positions with Z score Greater than or equal to")
+    plt.xlabel("Z score")
     plt.legend()
     plt.savefig(save_file)
 
-def calc_thresh(z_scores, method, kink_img = "./kink.png"):
-    '''
+
+def calc_thresh(z_scores, method, kink_img="./kink.png"):
+    """
     calc_thresh will calculate and appropriate threshold for a threshold based
         peak calling method if one was not supplied. It can automatically
         select this threshold based on several methods (which the user can
@@ -115,35 +130,40 @@ def calc_thresh(z_scores, method, kink_img = "./kink.png"):
         - method (string): the name of the threshold calculating method to use.
     Returns:
         - threshold (float): the calculated threshold.
-    '''
-    methods = ['expected_val', 'kink']
+    """
+    methods = ["expected_val", "kink"]
     thresh = 15
-    if method == 'expected_val': #threshold such that num peaks exp < 1.
-        p_val = 1/len(z_scores) #note this method is dependent on genome size
-        thresh = round(norm.ppf(1-p_val), 1)
-    elif method == 'kink':  #where the num z_scores exceeds exp num by 10000x
+    if method == "expected_val":  # threshold such that num peaks exp < 1.
+        p_val = 1 / len(z_scores)  # note this method is dependent on genome size
+        thresh = round(norm.ppf(1 - p_val), 1)
+    elif method == "kink":  # where the num z_scores exceeds exp num by 10000x
         factor_exceed = 10000
-        pnts = np.arange(0, 20, .1)
+        pnts = np.arange(0, 20, 0.1)
         seen = [0 for i in range(len(pnts))]
         exp = [0 for i in range(len(pnts))]
         thresh = -1
         for ind, point in enumerate(pnts):
-            seen[ind] = np.sum(z_scores[:,1] > point)
-            exp[ind] = (1 - norm.cdf(point))*len(z_scores)
-            if seen[ind] >= factor_exceed*exp[ind] and thresh == -1:
+            seen[ind] = np.sum(z_scores[:, 1] > point)
+            exp[ind] = (1 - norm.cdf(point)) * len(z_scores)
+            if seen[ind] >= factor_exceed * exp[ind] and thresh == -1:
                 thresh = point
         make_kink_fig(kink_img, seen, exp, pnts, thresh)
 
     else:
-        warnings.warn("\n".join([
-            f'The method selected ({method}) does not match the supported methods.',
-            f'Please select one from {methods}.',
-            f'Defaulting to threshold of {thresh}.'
-            ]))
+        warnings.warn(
+            "\n".join(
+                [
+                    f"The method selected ({method}) does not match the supported methods.",
+                    f"Please select one from {methods}.",
+                    f"Defaulting to threshold of {thresh}.",
+                ]
+            )
+        )
     return thresh
 
-def thresh_peaks(z_scores, thresh = None, method = 'kink'):
-    '''
+
+def thresh_peaks(z_scores, thresh=None, method="kink"):
+    """
     thresh_peaks will calculate a peaks from the provided z scores.  This
         approach will count all positions with a z score above a certain
         threshold as a peak. (and can also calculate this threshold)
@@ -153,54 +173,63 @@ def thresh_peaks(z_scores, thresh = None, method = 'kink'):
             automatically calculated.
         - method - the method to use to automatically calculate the z score
             if none is provided.  Default method is "kink"
-    '''
+    """
     if thresh is None:
         thresh = calc_thresh(z_scores, method)
-    peaks = np.zeros([len(z_scores),2])
-    peaks[:,0] = z_scores[:,0]
-    peaks[:,1] = (z_scores[:,1] > thresh).astype(int)
+    peaks = np.zeros([len(z_scores), 2])
+    peaks[:, 0] = z_scores[:, 0]
+    peaks[:, 1] = (z_scores[:, 1] > thresh).astype(int)
     return peaks
 
+
 def parse_args_make_peaks(args):
-    ''' Parses command line arguments '''
-    parser = argparse.ArgumentParser(description = 'Can run from the\
+    """Parses command line arguments"""
+    parser = argparse.ArgumentParser(
+        description="Can run from the\
                                         commmand line.  Please pass a \
                                         zscore file and select a method \
-                                        for peak fitting.')
-    parser.add_argument("filename", help = "Location of the zscore file")
-    parser.add_argument("method", help = "User must pass the desired peak\
-                                        fitting method.  Choose \"thesh\" \
-                                        or \"hmm\"")
-    parser.add_argument("--save_file", help = "Save the z_scores file as a new\
+                                        for peak fitting."
+    )
+    parser.add_argument("filename", help="Location of the zscore file")
+    parser.add_argument(
+        "method",
+        help='User must pass the desired peak\
+                                        fitting method.  Choose "thesh" \
+                                        or "hmm"',
+    )
+    parser.add_argument(
+        "--save_file",
+        help="Save the z_scores file as a new\
                                         wig file in addition to returning the\
                                         z_scores.  Default = True",
-                                default = True)
+        default=True,
+    )
     return parser.parse_args(args)
 
+
 def main_make_peaks():
-    ''' Runs the main peak making from command line '''
+    """Runs the main peak making from command line"""
     args = parse_args_make_peaks(sys.argv[1:])
 
     filename = args.filename
     z_scores, chrom = open_wig(filename)
     if args.method == "thresh":
-        print(f'Using the thresholding method to find peaks for {filename}')
+        print(f"Using the thresholding method to find peaks for {filename}")
         peaks = thresh_peaks(z_scores)
     elif args.method == "hmm":
-        print(f'Using the hmm method to find peaks for {filename}')
+        print(f"Using the hmm method to find peaks for {filename}")
         peaks = hmm_peaks(z_scores)
     else:
         raise ValueError("{args.method} is not a valid peak finding method, see --help")
     if args.save_file:
         filename = abspath(filename)
-        file_loc = filename[:filename.rfind('/')]
-        peak_dir = make_new_dir([file_loc, '/Peaks/'])
-        file_start = filename[filename.rfind('/')+1:filename.rfind('.wig')]
-        peak_file = ''.join([peak_dir, file_start, '_peaks.wig'])
+        file_loc = filename[: filename.rfind("/")]
+        peak_dir = make_new_dir([file_loc, "/Peaks/"])
+        file_start = filename[filename.rfind("/") + 1 : filename.rfind(".wig")]
+        peak_file = "".join([peak_dir, file_start, "_peaks.wig"])
         write_wig(peaks, peak_file, chrom)
-        print(f'Wrote peaks to {peak_file}')
+        print(f"Wrote peaks to {peak_file}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main_make_peaks()
-    
