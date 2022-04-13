@@ -132,8 +132,8 @@ class TestParseArgsAndMain:
         with patch.object(sys, "argv", default_argslist):
             main_make_peaks()
             clean_kink()
-            assert exists(file.strpath[0:-8] + "Peaks/")
-            outfile = file.strpath[0:-8] + "Peaks/file_peaks.wig"
+            assert exists(file.strpath[0:-8].replace("\\", "/") + "Peaks/")
+            outfile = file.strpath[0:-8].replace("\\", "/") + "Peaks/file_peaks.wig"
             assert exists(outfile)
             out, err = capfd.readouterr()
             assert out == "\n".join(

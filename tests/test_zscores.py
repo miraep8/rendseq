@@ -105,10 +105,11 @@ class TestMainAndParseArgsZscore:
             out, err = capfd.readouterr()
 
         # Expect output
+        file_head = file.strpath[0:-8].replace("\\", "/")
         assert out == "\n".join(
             [
                 f"Calculating zscores for file {file.strpath}.",
-                f'Wrote z_scores to {file.strpath[0:-8] + "Z_scores/file_zscores.wig"}',
+                f'Wrote z_scores to {file_head + "Z_scores/file_zscores.wig"}',
                 f"Ran zscores.py with the following settings:\ngap: 5, w_sz: 50,\nmin_r: 20, file_name: {file.strpath}\n",
             ]
         )
@@ -120,7 +121,7 @@ class TestMainAndParseArgsZscore:
         assert args.gap == "1"
         assert args.w_sz == "3"
         assert args.min_r == "0"
-        assert args.save_file == False
+        assert not args.save_file
 
     def test_parse_args_defaults(self):
         """Makes sure the arg defaults are as-expected"""
@@ -303,7 +304,7 @@ class TestCalcScore:
 
     def test_calc_score_highmin(self, reads):
         """Reads don't hit minimimum background"""
-        assert _calc_score(reads[:, 1:], 10000, 1) == None
+        assert _calc_score(reads[:, 1:], 10000, 1) is None
 
     def test_calc_score_constant(self):
         """Reads are constant"""
@@ -311,7 +312,7 @@ class TestCalcScore:
 
     def test_calc_score_empty(self):
         """Array is empty"""
-        assert _calc_score(array([]), 0, 1) == None
+        assert _calc_score(array([]), 0, 1) is None
 
 
 class TestZScore:

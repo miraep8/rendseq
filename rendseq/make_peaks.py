@@ -224,7 +224,7 @@ def main_make_peaks():
     else:
         raise ValueError("{args.method} is not a valid peak finding method, see --help")
     if args.save_file:
-        filename = abspath(filename)
+        filename = abspath(filename).replace("\\", "/")
         file_loc = filename[: filename.rfind("/")]
         peak_dir = make_new_dir([file_loc, "/Peaks/"])
         file_start = filename[filename.rfind("/") + 1 : filename.rfind(".wig")]

@@ -249,7 +249,7 @@ def main_zscores():
 
     # Save file, if applicable
     if args.save_file:
-        filename = abspath(filename)
+        filename = abspath(filename).replace("\\", "/")
         file_loc = filename[: filename.rfind("/")]
         z_score_dir = make_new_dir([file_loc, "/Z_scores"])
         file_start = filename[filename.rfind("/") : filename.rfind(".")]
