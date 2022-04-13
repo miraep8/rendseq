@@ -2,6 +2,9 @@
 """Take normalized raw data find the peaks in it."""
 
 import argparse
+import sys
+import warnings
+from os.path import abspath
 
 import numpy as np
 from matplotlib import pyplot as plt
@@ -118,7 +121,7 @@ def _make_kink_fig(save_file, seen, exp, pnts, thresh):
     plt.savefig(save_file)
 
 
-def _calc_thresh(z_scores, method):
+def _calc_thresh(z_scores, method, kink_img="./kink.png"):
     """Calculate a threshold for z-scores file using the method provided.
 
     Parameters
@@ -136,7 +139,7 @@ def _calc_thresh(z_scores, method):
     if method == "expected_val":  # threshold such that num peaks exp < 1.
         p_val = 1 / len(z_scores)  # note this method is dependent on genome size
         thresh = round(norm.ppf(1 - p_val), 1)
-    elif method == "kink":  # where the num z_scores exceeds exp num by 1000x
+    elif method == "kink":  # where the num z_scores exceeds exp num by 10000x
         factor_exceed = 10000
         pnts = np.arange(0, 20, 0.1)
         seen = [0 for i in range(len(pnts))]
@@ -147,15 +150,16 @@ def _calc_thresh(z_scores, method):
             exp[ind] = (1 - norm.cdf(point)) * len(z_scores)
             if seen[ind] >= factor_exceed * exp[ind] and thresh == -1:
                 thresh = point
-        _make_kink_fig("./kink.png", seen, exp, pnts, thresh)
+
+        _make_kink_fig(kink_img, seen, exp, pnts, thresh)
 
     else:
-        print(
+        warnings.warn(
             "\n".join(
                 [
-                    f"The method selected ({method}) does not match one of the",
-                    f"supported methods.  Please select one from {methods}.",
-                    f"Defaulting to threshold of {thresh}",
+                    f"The method selected ({method}) is not supported.",
+                    f"Please select one from {methods}.",
+                    f"Defaulting to threshold of {thresh}.",
                 ]
             )
         )
@@ -181,7 +185,8 @@ def thresh_peaks(z_scores, thresh=None, method="kink"):
     return peaks
 
 
-if __name__ == "__main__":
+def parse_args_make_peaks(args):
+    """Parse command line arguments."""
     parser = argparse.ArgumentParser(
         description="Can run from the\
                                         commmand line.  Please pass a \
@@ -202,8 +207,12 @@ if __name__ == "__main__":
                                         z_scores.  Default = True",
         default=True,
     )
-    # TODO: add more optional args to parser - like zscores.py
-    args = parser.parse_args()
+    return parser.parse_args(args)
+
+
+def main_make_peaks():
+    """Run the main peak making from command line."""
+    args = parse_args_make_peaks(sys.argv[1:])
     filename = args.filename
     z_scores, chrom = open_wig(filename)
     if args.method == "thresh":
@@ -213,11 +222,16 @@ if __name__ == "__main__":
         print(f"Using the hmm method to find peaks for {filename}")
         peaks = hmm_peaks(z_scores)
     else:
-        print("Issue!  Must pass a valid peak finding method!")
+        raise ValueError("{args.method} is not a valid peak finding method, see --help")
     if args.save_file:
+        filename = abspath(filename)
         file_loc = filename[: filename.rfind("/")]
-        file_loc = file_loc[: file_loc.rfind("/")]
         peak_dir = make_new_dir([file_loc, "/Peaks/"])
-        file_start = filename[filename.rfind("/") : filename.rfind(".wig")]
+        file_start = filename[filename.rfind("/") + 1 : filename.rfind(".wig")]
         peak_file = "".join([peak_dir, file_start, "_peaks.wig"])
         write_wig(peaks, peak_file, chrom)
+        print(f"Wrote peaks to {peak_file}")
+
+
+if __name__ == "__main__":
+    main_make_peaks()
