@@ -11,7 +11,11 @@ on:
 jobs:
   #inspiration for style_check action from sktime - thanks sktime!
   style_check:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+        matrix:
+            os: [ubuntu-latest, windows-latest, macOS-latest]
 
     steps:
       - uses: actions/checkout@v3
