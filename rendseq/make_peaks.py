@@ -151,9 +151,13 @@ def _calc_thresh(z_scores, method):
 
     else:
         print(
-            f"The method selected ({method}) does not match one of the \
-                supported methods.  Please select one from {methods}.  \
-                Defaulting to threshold of {thresh}"
+            "\n".join(
+                [
+                    f"The method selected ({method}) does not match one of the",
+                    f"supported methods.  Please select one from {methods}.",
+                    f"Defaulting to threshold of {thresh}",
+                ]
+            )
         )
     return thresh
 
