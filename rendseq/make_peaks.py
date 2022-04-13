@@ -2,6 +2,7 @@
 peaks.py will take a zscore and find the peaks in it using the vertibi algorithm.
 '''
 import argparse
+import sys
 from os.path import abspath
 import warnings
 from math import log, inf
@@ -189,15 +190,15 @@ def main_make_peaks():
         print(f'Using the hmm method to find peaks for {filename}')
         peaks = hmm_peaks(z_scores)
     else:
-        raise ValueError("{args.mathod} is not a valid peak finding method, see --help")
+        raise ValueError("{args.method} is not a valid peak finding method, see --help")
     if args.save_file:
         filename = abspath(filename)
         file_loc = filename[:filename.rfind('/')]
-        file_loc = file_loc[:file_loc.rfind('/')]
         peak_dir = make_new_dir([file_loc, '/Peaks/'])
-        file_start = filename[filename.rfind('/'):filename.rfind('.wig')]
+        file_start = filename[filename.rfind('/')+1:filename.rfind('.wig')]
         peak_file = ''.join([peak_dir, file_start, '_peaks.wig'])
         write_wig(peaks, peak_file, chrom)
+        print(f'Wrote peaks to {peak_file}')
 
 
 if __name__ == '__main__':
