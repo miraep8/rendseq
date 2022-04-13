@@ -21,8 +21,8 @@ def validate_reads(reads):
     -------
     NoneType
 
-    Effects
-    -------
+    Raises
+    ------
         Throws exceptions if reads are not correctly formatted
     """
     # Check if reads are empty
