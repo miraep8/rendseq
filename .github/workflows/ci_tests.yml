@@ -6,7 +6,7 @@ on:
       - main
   pull_request:
     branches:
-      - main
+      - '**'
 
 jobs:
   #inspiration for style_check action from sktime - thanks sktime!
