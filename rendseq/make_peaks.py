@@ -80,14 +80,18 @@ def hmm_peaks(z_scores, i_to_p=1 / 1000, p_to_p=1 / 1.5, peak_center=10, spread=
             column being a peak assignment.
     """
     print("Finding Peaks")
+    max_z = peak_center + spread
+    # cap the z scores at peak_center + spread to eliminate very large zscores.
+    trim_zscores = z_scores[:, :]
+    trim_zscores[:, 1] = np.where(z_scores[:, 1] > max_z, max_z, z_scores[:, 1])
     trans_m = np.asarray(
         [[(1 - i_to_p), (i_to_p)], [p_to_p, (1 - p_to_p)]]
     )  # transition probability
     peaks = np.zeros([len(z_scores), 2])
-    peaks[:, 0] = z_scores[:, 0]
+    peaks[:, 0] = trim_zscores[:, 0]
     states = [1, 100]  # how internal and peak are represented in the wig file
     trans_1, trans_2 = _populate_trans_mat(
-        z_scores, peak_center, spread, trans_m, states
+        trim_zscores, peak_center, spread, trans_m, states
     )
     # Now we trace backwards and find the most likely path:
     max_inds = np.zeros([len(peaks)]).astype(int)
