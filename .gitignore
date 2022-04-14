@@ -4,4 +4,4 @@
 *.ipynb_checkpoints.*
 *.pyc
 .env/*
-./rendseq/__pycache__/
+./rendseq/__pycache__/*
