@@ -43,10 +43,15 @@ jobs:
           pip install -r ci_requirements.txt
       - name: Run tests with pytest
         run: |
-          mkdir -p testdir/
-          cp .coveragerc testdir/
-          cp setup.cfg testdir/
-          cd testdir/
-          python -m pytest --durations=10 --cov-report=xml --cov=rendeq
-      - name: Publish code coverage
+          pip install pytest
+          pip install pytest-cov
+          pytest --cov=./ --cov-report=xml
+      - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v2
+        with:
+          directory: ./coverage/reports/
+          env_vars: OS,PYTHON
+          fail_ci_if_error: true
+          files: ./coverage1.xml,./coverage2.xml
+          flags: unittests
+          name: codecov-umbrella
