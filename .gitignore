@@ -3,3 +3,5 @@
 *.toml
 *.ipynb_checkpoints.*
 *.pyc
+.env/*
+./rendseq/__pycache__/*
