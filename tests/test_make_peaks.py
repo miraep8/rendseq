@@ -175,7 +175,6 @@ class TestPopulateTransMat:
 
 
 class TestHmmPeaks:
-    # TODO: Need more detailed tests
     def test_hmm_peaks(self, capfd, z_scores):
         """A regular set of z scores with a peak"""
         z_scores[500, 1] = 5
@@ -187,7 +186,7 @@ class TestHmmPeaks:
         out, err = capfd.readouterr()
         assert out == "Finding Peaks\nCalculating Transition Matrix\nFound 1 Peaks\n"
 
-    def test_hmm_peaks_extremePeak(self, capfd, z_scores):
+    def test_hmm_peaks_extremePeak_inCenter(self, capfd, z_scores):
         """A regular set of z scores with an extreme peak"""
         z_scores[500, 1] = 10e4
         peaks_almost_1 = array([[loc, z] for loc, z in zip(range(1, 1000), [1] * 1000)])
@@ -195,6 +194,18 @@ class TestHmmPeaks:
 
         with pytest.warns(RuntimeWarning):
             assert_array_equal(hmm_peaks(z_scores, peak_center=10e4), peaks_almost_1)
+
+        # Test print output
+        out, err = capfd.readouterr()
+        assert out == "Finding Peaks\nCalculating Transition Matrix\nFound 1 Peaks\n"
+
+    def test_hmm_peaks_extremePeak_notinCenter(self, capfd, z_scores):
+        """A regular set of z scores with an extreme peak"""
+        z_scores[500, 1] = 10e4
+        peaks_almost_1 = array([[loc, z] for loc, z in zip(range(1, 1000), [1] * 1000)])
+        peaks_almost_1[500, 1] = 100
+
+        assert_array_equal(hmm_peaks(z_scores), peaks_almost_1)
 
         # Test print output
         out, err = capfd.readouterr()
