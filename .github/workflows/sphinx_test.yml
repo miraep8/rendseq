@@ -11,6 +11,11 @@ jobs:
   docs:
     runs-on: ubuntu-latest
     steps:
+    - name: Install dependences
+      run: |
+        python -m pip install sphinx_rtd_theme
+
+    # Build 
     - uses: actions/checkout@v1
     - uses: ammaraskar/sphinx-action@master
       with:
