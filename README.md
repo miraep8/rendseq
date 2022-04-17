@@ -1,17 +1,50 @@
 # rendseq
-rendseq is the python package to facilitate your RendSeq
-data analysis dreams!
 
+<h4 align="center">
+A python package to facilitate your End-Enriched RNA Sequencing (Rend)
+data analysis dreams!</h4>
+
+
+<div align="center">
+  <!-- badges: start -->
+  <div id="banner" style="overflow: hidden;justify-content:space-around;">
+  <a href="https://miraep8.github.io/gfpopgui">
+  <img src="https://img.shields.io/badge/Sphinx%20Documentation-blue"
+    alt="Documentation Link"></img>
+  </a>
+  <a href="https://www.tidyverse.org/lifecycle/#experimental">
+  <img src="https://img.shields.io/badge/lifecycle-experimental-orange.svg"
+    alt="Lifecycle: experimental"></img>
+  </a>
+<a href="https://codecov.io/gh/miraep8/rendseq">
+  <img src="https://codecov.io/gh/miraep8/rendseq/branch/main/graph/badge.svg?token=SIGSJGCZPI"/>
+</a>
+  </div>
+  <hr>
+  <!-- badges: end -->
+
+  <p>
+    <a href="#overview">Overview</a> •
+    <a href="#installation">Installation</a>
+  </p>
+</div>
+  <!-- badges: end -->
+
+# Overview
 To learn more about RendSeq - eg what it is, what types of questions it can help you solve and how you can generate your own RendSeq data set please visit the
  [Li lab website](http://gwli.scripts.mit.edu/group/), or check out
 the [Li Lab's 2018 Cell Paper](http://gwli.scripts.mit.edu/group/wp-content/uploads/2019/01/Lalanne_Cell2018.pdf)
 by Lalanne et al.
+
+# Installation
 
 To get started - install our package via pip
 
   `pip install rendseq`
 
 To learn more about how to use this package -please check out our documentation page and/or walk through our google collab tutorial.
+
+# Testing
 
 We welcome collaborators on this project!  To get started check out our instructions for how to get started as a contributor.
 
