@@ -10,7 +10,6 @@ on:
 jobs:
   docs:
     runs-on: ubuntu-latest
-    # Build 
     - uses: actions/checkout@v1
     - uses: ammaraskar/sphinx-action@master
       with:
