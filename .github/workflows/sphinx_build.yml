@@ -5,8 +5,8 @@ on:
       - main
 
 jobs:
-  build_docs:
-    runs-on: ubuntu-latest 
+  docs:
+    runs-on: ubuntu-latest
     steps:
     run: |
         git clone https://github.com/julianstanley/rendseq.git --branch gh-pages --single-branch gh-pages
