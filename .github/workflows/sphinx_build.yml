@@ -1,4 +1,5 @@
-name: Commit documentation changes
+name: "Commit documentation changes"
+
 on:
   push:
     branches:
