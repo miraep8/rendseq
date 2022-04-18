@@ -8,8 +8,8 @@ data analysis dreams!</h4>
 <div align="center">
   <!-- badges: start -->
   <div id="banner" style="overflow: hidden;justify-content:space-around;">
-  <a href="https://miraep8.github.io/gfpopgui">
-  <img src="https://img.shields.io/badge/Sphinx%20Documentation-blue"
+  <a href="https://rendseq.readthedocs.io/en/latest/i">
+  <img src="https://img.shields.io/badge/ReadTheDocs-blue"
     alt="Documentation Link"></img>
   </a>
   <a href="https://www.tidyverse.org/lifecycle/#experimental">
