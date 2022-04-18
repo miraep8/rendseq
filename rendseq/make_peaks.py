@@ -26,6 +26,15 @@ def _populate_trans_mat(z_scores, peak_center, spread, trans_m, states):
             distribution.
         -trans_m (matrix): the transition probabilities between states.
         -states (matrix): how internal and peak are represented in the wig file
+
+    Raises
+    ------
+        -ValueError if the HMM parameters are unable to find any likely paths.
+            This is at risk of happening if the emission probabilities are for
+            either the peak state or the internal state look very different from
+            the true distribution, or the parameters selected only allow a very
+            unlikely path - for example if p_to_p = 1 and you try to force the
+            system to stay in the peak state.
     """
     print("Calculating Transition Matrix")
     trans_1 = np.zeros([len(states), len(z_scores)])
@@ -52,6 +61,17 @@ def _populate_trans_mat(z_scores, peak_center, spread, trans_m, states):
         )  # adds log(probs_sub) row-wise
         trans_2[:, i] = np.argmax(paths, axis=0)
         trans_1[:, i] = np.max(paths, axis=0)
+
+    if np.any(np.isinf(trans_1[:, -1])):
+        raise ValueError(
+            "".join(
+                [
+                    "Parameters Provided are too far from the true",
+                    "distribution for a valid path to be found.  Please ",
+                    "change your paramters for hmm_peaks and try again.",
+                ]
+            )
+        )
     return trans_1, trans_2
 
 
@@ -65,7 +85,7 @@ def hmm_peaks(z_scores, i_to_p=1 / 1000, p_to_p=1 / 1.5, peak_center=10, spread=
         -i_to_p (float): value should be between zero and 1, represents
             probability of transitioning from inernal state to peak state. The
             default value is 1/2000, based on asseumption of geometrically
-            distributed transcript lengths with mean length 2000. Should be a
+            distributed transcript lengths with mean length 1000. Should be a
             robust parameter.
         -p_to_p (float): The probability of a peak to peak transition.  Default
             1/1.5.
@@ -87,20 +107,20 @@ def hmm_peaks(z_scores, i_to_p=1 / 1000, p_to_p=1 / 1.5, peak_center=10, spread=
     trans_m = np.asarray(
         [[(1 - i_to_p), (i_to_p)], [p_to_p, (1 - p_to_p)]]
     )  # transition probability
-    peaks = np.zeros([len(z_scores), 2])
-    peaks[:, 0] = trim_zscores[:, 0]
     states = [1, 100]  # how internal and peak are represented in the wig file
     trans_1, trans_2 = _populate_trans_mat(
         trim_zscores, peak_center, spread, trans_m, states
     )
+    peaks = np.zeros([len(z_scores), 2])
+    peaks[:, 0] = trim_zscores[:, 0]
     # Now we trace backwards and find the most likely path:
     max_inds = np.zeros([len(peaks)]).astype(int)
-    max_inds[len(peaks) - 1] = int(np.argmax(trans_1[:, len(trans_1)]))
-    peaks[1, -1] = states[max_inds[len(peaks) - 1]]
-    for index in reversed(list(range(len(peaks)))):
+    max_inds[-1] = int(np.argmax(trans_1[:, len(trans_1)]))
+    peaks[-1, 1] = states[max_inds[-1]]
+    for index in reversed(list(range(1, len(peaks)))):
         max_inds[index - 1] = trans_2[max_inds[index], index]
         peaks[index - 1, 1] = states[max_inds[index - 1]]
-    print(f"Found {sum(peaks[:,1] > 1)} Peaks")
+    print(f"Found {sum(peaks[:,1] == states[1])} Peaks")
     return peaks
 
 

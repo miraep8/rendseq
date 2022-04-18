@@ -186,19 +186,6 @@ class TestHmmPeaks:
         out, err = capfd.readouterr()
         assert out == "Finding Peaks\nCalculating Transition Matrix\nFound 1 Peaks\n"
 
-    def test_hmm_peaks_extremePeak_inCenter(self, capfd, z_scores):
-        """A regular set of z scores with an extreme peak"""
-        z_scores[500, 1] = 10e4
-        peaks_almost_1 = array([[loc, z] for loc, z in zip(range(1, 1000), [1] * 1000)])
-        peaks_almost_1[500, 1] = 100
-
-        with pytest.warns(RuntimeWarning):
-            assert_array_equal(hmm_peaks(z_scores, peak_center=10e4), peaks_almost_1)
-
-        # Test print output
-        out, err = capfd.readouterr()
-        assert out == "Finding Peaks\nCalculating Transition Matrix\nFound 1 Peaks\n"
-
     def test_hmm_peaks_extremePeak_notinCenter(self, capfd, z_scores):
         """A regular set of z scores with an extreme peak"""
         z_scores[500, 1] = 10e4
@@ -210,6 +197,30 @@ class TestHmmPeaks:
         # Test print output
         out, err = capfd.readouterr()
         assert out == "Finding Peaks\nCalculating Transition Matrix\nFound 1 Peaks\n"
+
+    def test_hmm_peaks_bad_paramters(self, z_scores):
+        """A regular set of z scores with a peak"""
+        z_scores[500, 1] = 12
+        with pytest.raises(ValueError):
+            hmm_peaks(z_scores, i_to_p=0.5, p_to_p=0.99, peak_center=100, spread=0.5)
+
+    def test_hmm_peaks_p_to_p_is_one(self, z_scores):
+        """A regular set of z scores with a peak"""
+        NUM_PNTS = 1000
+        z_scores = array(
+            [
+                [loc, z]
+                for loc, z in zip(
+                    range(1, NUM_PNTS), normal(10, 0.1, size=(1, NUM_PNTS - 1))[0]
+                )
+            ]
+        )
+        all_peaks = array(
+            [[loc, z] for loc, z in zip(range(1, NUM_PNTS), [100] * NUM_PNTS)]
+        )
+        print(hmm_peaks(z_scores, peak_center=10, spread=0.1))
+
+        assert_array_equal(hmm_peaks(z_scores, peak_center=10, spread=0.1), all_peaks)
 
     # TODO: Tests for all of the hmm_peaks parameters
 
