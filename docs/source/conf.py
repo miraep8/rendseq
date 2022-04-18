@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-""" A Sphinx documentation file """
+"""A Sphinx documentation file."""
 
 # Configuration file for the Sphinx documentation builder.
 #
