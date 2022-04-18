@@ -25,7 +25,8 @@ data analysis dreams!</h4>
 
   <p>
     <a href="#overview">Overview</a> •
-    <a href="#installation">Installation</a>
+    <a href="#installation">Installation</a> •
+    <a href="#contribute">Contribute</a>
   </p>
 </div>
   <!-- badges: end -->
@@ -44,7 +45,7 @@ To get started - install our package via pip
 
 To learn more about how to use this package -please check out our documentation page and/or walk through our google collab tutorial.
 
-# Testing
+# Contribute
 
 We welcome collaborators on this project!  To get started check out our instructions for how to get started as a contributor.
 
