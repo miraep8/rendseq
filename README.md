@@ -8,8 +8,8 @@ data analysis dreams!</h4>
 <div align="center">
   <!-- badges: start -->
   <div id="banner" style="overflow: hidden;justify-content:space-around;">
-  <a href="https://miraep8.github.io/gfpopgui">
-  <img src="https://img.shields.io/badge/Sphinx%20Documentation-blue"
+  <a href="https://rendseq.readthedocs.io/en/latest/">
+  <img src="https://img.shields.io/badge/ReadTheDocs-blue"
     alt="Documentation Link"></img>
   </a>
   <a href="https://www.tidyverse.org/lifecycle/#experimental">
@@ -25,7 +25,8 @@ data analysis dreams!</h4>
 
   <p>
     <a href="#overview">Overview</a> •
-    <a href="#installation">Installation</a>
+    <a href="#installation">Installation</a> •
+    <a href="#contribute">Contribute</a>
   </p>
 </div>
   <!-- badges: end -->
@@ -44,7 +45,7 @@ To get started - install our package via pip
 
 To learn more about how to use this package -please check out our documentation page and/or walk through our google collab tutorial.
 
-# Testing
+# Contribute
 
 We welcome collaborators on this project!  To get started check out our instructions for how to get started as a contributor.
 
