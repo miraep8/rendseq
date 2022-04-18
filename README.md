@@ -43,7 +43,7 @@ To get started - install our package via pip
 
   `pip install rendseq`
 
-To learn more about how to use this package -please check out our documentation page and/or walk through our google collab tutorial.
+To learn more about how to use this package -please check out our [documentation page](https://rendseq.readthedocs.io/en/latest/).
 
 # Contribute
 
