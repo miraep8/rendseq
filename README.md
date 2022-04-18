@@ -8,7 +8,7 @@ data analysis dreams!</h4>
 <div align="center">
   <!-- badges: start -->
   <div id="banner" style="overflow: hidden;justify-content:space-around;">
-  <a href="https://rendseq.readthedocs.io/en/latest/i">
+  <a href="https://rendseq.readthedocs.io/en/latest/">
   <img src="https://img.shields.io/badge/ReadTheDocs-blue"
     alt="Documentation Link"></img>
   </a>
