@@ -198,7 +198,7 @@ class TestHmmPeaks:
         out, err = capfd.readouterr()
         assert out == "Finding Peaks\nCalculating Transition Matrix\nFound 1 Peaks\n"
 
-    def test_hmm_peaks_bad_paramters(self, z_scores):
+    def test_hmm_peaks_bad_parameters(self, z_scores):
         """A regular set of z scores with a peak"""
         z_scores[500, 1] = 12
         with pytest.raises(ValueError):
@@ -218,7 +218,6 @@ class TestHmmPeaks:
         all_peaks = array(
             [[loc, z] for loc, z in zip(range(1, NUM_PNTS), [100] * NUM_PNTS)]
         )
-        print(hmm_peaks(z_scores, peak_center=10, spread=0.1))
 
         assert_array_equal(hmm_peaks(z_scores, peak_center=10, spread=0.1), all_peaks)
 

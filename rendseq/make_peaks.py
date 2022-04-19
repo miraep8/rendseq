@@ -30,7 +30,7 @@ def _populate_trans_mat(z_scores, peak_center, spread, trans_m, states):
     Raises
     ------
         -ValueError if the HMM parameters are unable to find any likely paths.
-            This is at risk of happening if the emission probabilities are for
+            This is at risk of happening if the emission probabilities for
             either the peak state or the internal state look very different from
             the true distribution, or the parameters selected only allow a very
             unlikely path - for example if p_to_p = 1 and you try to force the
