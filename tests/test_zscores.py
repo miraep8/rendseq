@@ -14,11 +14,11 @@ from rendseq.zscores import (
     _l_score_helper,
     _r_score_helper,
     _remove_outliers,
+    _z_score,
     main_zscores,
     parse_args_zscores,
     score_helper,
     validate_gap_window,
-    z_score,
     z_scores,
 )
 
@@ -319,11 +319,11 @@ class TestZScore:
     def test_z_score_normal(self, reads):
         """Run-of-the-mill zscore"""
         vals = reads[:, 1:]
-        assert z_score(vals[1][0], mean(vals), std(vals)) == pytest.approx(-0.2780832)
+        assert _z_score(vals[1][0], mean(vals), std(vals)) == pytest.approx(-0.2780832)
 
     def test_z_score_constant(self):
         """Zero stdev"""
-        assert z_score(1, 1, 0) == 0
+        assert _z_score(1, 1, 0) == 0
 
 
 class TestRemoveOutliers:
