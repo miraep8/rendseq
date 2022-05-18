@@ -1,7 +1,7 @@
 *~
 *.egg-info/
 *.toml
-*.ipynb_checkpoints.*
+*.ipynb_checkpoints*
 *.pyc
 .env/*
 *__pycache__/*

@@ -23,7 +23,7 @@ from rendseq.make_peaks import (
 
 @pytest.fixture
 def z_scores():
-    """Define some random z-scores"""
+    """Define some random z-scores."""
     return array(
         [[loc, z] for loc, z in zip(range(1, 1000), normal(0, 1, size=(1, 1000))[0])]
     )
@@ -38,7 +38,7 @@ def clean_kink():
 class TestParseArgsAndMain:
     @pytest.fixture
     def regular_argslist(self):
-        """A normal list of sys.argv[1:]"""
+        """A normal list of sys.argv[1:]."""
         return [
             "test_file",
             "thresh",
@@ -47,7 +47,7 @@ class TestParseArgsAndMain:
         ]
 
     def test_main_thresh(self, tmpdir, capfd, regular_argslist, z_scores):
-        """Main with regular arguments"""
+        """Main with regular arguments."""
 
         # Create a wig file with the z_scores() fixture
         file = tmpdir.join("file.txt")
@@ -69,7 +69,7 @@ class TestParseArgsAndMain:
         )
 
     def test_main_hmm(self, tmpdir, capfd, regular_argslist, z_scores):
-        """Main with hmm"""
+        """Main with hmm."""
 
         # Create a wig file with the z_scores() fixture
         file = tmpdir.join("file.txt")
@@ -97,7 +97,7 @@ class TestParseArgsAndMain:
         )
 
     def test_main_undefined(self, tmpdir, capfd, regular_argslist, z_scores):
-        """Main with undefined method"""
+        """Main with undefined method."""
 
         # Create a wig file with the z_scores() fixture
         file = tmpdir.join("file.txt")
@@ -144,14 +144,14 @@ class TestParseArgsAndMain:
             )
 
     def test_parse_args(self, regular_argslist):
-        """Regular arguments"""
+        """Regular arguments."""
         args = parse_args_make_peaks(regular_argslist)
         assert args.filename == "test_file"
         assert args.method == "thresh"
         assert not args.save_file
 
     def test_parse_args_defaults(self):
-        """Makes sure the arg defaults are as-expected"""
+        """Makes sure the arg defaults are as-expected."""
         arg_list = ["test_file", "thresh"]
         args = parse_args_make_peaks(arg_list)
 
@@ -176,7 +176,7 @@ class TestPopulateTransMat:
 
 class TestHmmPeaks:
     def test_hmm_peaks(self, capfd, z_scores):
-        """A regular set of z scores with a peak"""
+        """A regular set of z scores with a peak."""
         z_scores[500, 1] = 5
         peaks_almost_1 = array([[loc, z] for loc, z in zip(range(1, 1000), [1] * 1000)])
         peaks_almost_1[500, 1] = 100
@@ -187,7 +187,7 @@ class TestHmmPeaks:
         assert out == "Finding Peaks\nCalculating Transition Matrix\nFound 1 Peaks\n"
 
     def test_hmm_peaks_extremePeak_notinCenter(self, capfd, z_scores):
-        """A regular set of z scores with an extreme peak"""
+        """A regular set of z scores with an extreme peak."""
         z_scores[500, 1] = 10e4
         peaks_almost_1 = array([[loc, z] for loc, z in zip(range(1, 1000), [1] * 1000)])
         peaks_almost_1[500, 1] = 100
@@ -199,13 +199,13 @@ class TestHmmPeaks:
         assert out == "Finding Peaks\nCalculating Transition Matrix\nFound 1 Peaks\n"
 
     def test_hmm_peaks_bad_parameters(self, z_scores):
-        """A regular set of z scores with a peak"""
+        """A regular set of z scores with a peak."""
         z_scores[500, 1] = 12
         with pytest.raises(ValueError):
             hmm_peaks(z_scores, i_to_p=0.5, p_to_p=0.99, peak_center=100, spread=0.5)
 
     def test_hmm_peaks_p_to_p_is_one(self, z_scores):
-        """A regular set of z scores with a peak"""
+        """A regular set of z scores with a peak."""
         NUM_PNTS = 1000
         z_scores = array(
             [
@@ -225,7 +225,7 @@ class TestHmmPeaks:
 
 
 def test_make_kink_fig(tmpdir):
-    """Just make sure it makes a plot file"""
+    """Just make sure it makes a plot file."""
     file = tmpdir.join("file")
     _make_kink_fig(file.strpath + ".png", [0, 1], [1, 0], [1, 0], [1, 2])
     assert exists(file.strpath + ".png")
@@ -233,17 +233,17 @@ def test_make_kink_fig(tmpdir):
 
 class TestThreshPeaks:
     def test_thresh_peaks_highThresh(self, z_scores):
-        """Very high threshold"""
+        """Very high threshold."""
         z_scores_0 = array([[loc, z] for loc, z in zip(range(1, 1000), [0] * 1000)])
         assert_array_equal(thresh_peaks(z_scores, thresh=1e9), z_scores_0)
 
     def test_thresh_peaks_lowThreshold(self, z_scores):
-        """A very low threshold"""
+        """A very low threshold."""
         z_scores_1 = array([[loc, z] for loc, z in zip(range(1, 1000), [1] * 1000)])
         assert_array_almost_equal(thresh_peaks(z_scores, thresh=-1e9), z_scores_1)
 
     def test_thresh_peaks_threshold(self, z_scores):
-        """Test the filtering: threshold is exactly at one point"""
+        """Test the filtering: threshold is exactly at one point."""
         z_scores_almost0 = array(
             [[loc, z] for loc, z in zip(range(1, 1000), [0] * 1000)]
         )
@@ -259,16 +259,16 @@ class TestThreshPeaks:
 
 class TestCalcThresh:
     def test_calc_thresh_default(self, z_scores):
-        """Threshold with invalid thresh procedure"""
+        """Threshold with invalid thresh procedure."""
         with pytest.warns(UserWarning):
             assert _calc_thresh(z_scores, "") == 15
 
     def test_calc_thresh_expected_val(self, z_scores):
-        """Expected_val threshold"""
+        """Expected_val threshold."""
         assert _calc_thresh(z_scores, "expected_val") == pytest.approx(3.1)
 
     def test_calc_thresh_kink(self, tmpdir, z_scores):
-        """Kink threshold"""
+        """Kink threshold."""
         file = tmpdir.join("file.txt")
         kink_file = file.strpath[0:-8] + "test_kink.png"
         assert _calc_thresh(z_scores, "kink", kink_file) == pytest.approx(8.3)
