@@ -190,7 +190,7 @@ def _calc_thresh(z_scores, method, kink_img="./kink.png"):
     return thresh
 
 
-def thresh_peaks(z_scores, thresh=None, method="kink"):
+def thresh_peaks(z_scores, thresh=None, method="kink", kink_image="./kink.png"):
     """Find peaks by calling z-scores above a threshold as a peak.
 
     Parameters
@@ -202,7 +202,7 @@ def thresh_peaks(z_scores, thresh=None, method="kink"):
             if none is provided.  Default method is "kink"
     """
     if thresh is None:
-        thresh = _calc_thresh(z_scores, method)
+        thresh = _calc_thresh(z_scores, method, kink_image)
     peaks = np.zeros([len(z_scores), 2])
     peaks[:, 0] = z_scores[:, 0]
     peaks[:, 1] = (z_scores[:, 1] > thresh).astype(int)
