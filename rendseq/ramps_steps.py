@@ -14,10 +14,11 @@ Functions:
 
 from datetime import datetime
 
-import file_funcs as ff
 import numpy as np
 import pandas as pd
 import scipy.stats as stats
+
+import rendseq.file_funcs as ff
 
 
 class ReadsData:
